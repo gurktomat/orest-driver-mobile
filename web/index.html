@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d0f14" />
+    <title>Orest Driver</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #0d0f14;
+        color: #f3f3f3;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .pulse {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #d97706;
+        animation: pulse 1.4s ease-in-out infinite;
+        margin-bottom: 16px;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 0.4; transform: scale(0.85); }
+        50%      { opacity: 1;   transform: scale(1.1);  }
+      }
+      .small {
+        font-size: 13px;
+        opacity: 0.6;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pulse"></div>
+    <div>Orest Driver</div>
+    <div class="small">Loading driver portal…</div>
+    <script>
+      // Fallback in case Capacitor's server.url doesn't take over (it should).
+      // Without server.url Capacitor would serve this file as the app root,
+      // so we navigate to the live driver portal anyway.
+      setTimeout(function () {
+        if (location.hostname === 'localhost' || location.protocol === 'file:') {
+          location.replace('https://orestexpress.online/driver/dashboard');
+        }
+      }, 200);
+    </script>
+  </body>
+</html>

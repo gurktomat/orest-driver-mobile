@@ -1,0 +1,31 @@
+# node
+node_modules/
+
+# Capacitor build outputs
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/app/release/
+build/
+
+# iOS build outputs
+ios/App/Pods/
+ios/App/Podfile.lock
+ios/DerivedData/
+ios/build/
+ios/App/build/
+*.xcuserstate
+xcuserdata/
+
+# secrets — uploaded to Codemagic / Firebase / Apple separately, never to git
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist
+ios/App/App/AuthKey_*.p8
+*.p12
+*.keystore
+
+# misc
+.DS_Store
+.idea/
+*.log

@@ -1,0 +1,105 @@
+workflows:
+  ios-driver-adhoc:
+    name: Orest Driver iOS — Ad-hoc IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: codemagic-asc-api-key
+    environment:
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.orestexpress.driver
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+      node: 20
+      xcode: latest
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Capacitor sync
+        script: npx cap sync ios
+      - name: Add Firebase iOS SDK via SPM
+        script: |
+          # Firebase iOS SDK is referenced from AppDelegate.swift; SPM resolves it during xcodebuild.
+          # Codemagic has the package added in Xcode project. If not yet, run once locally on iMac:
+          #   open ios/App/App.xcworkspace
+          #   File → Add Package Dependencies → https://github.com/firebase/firebase-ios-sdk
+          # Tick FirebaseMessaging + FirebaseAnalytics, commit Package.resolved, push.
+          true
+      - name: Stamp build number from CI
+        script: |
+          cd ios/App
+          BUILD_NUM=$(($(date +%s) / 60))
+          xcrun agvtool new-version -all $BUILD_NUM
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - jaroslavpospisil@icloud.com
+        notify:
+          success: true
+          failure: true
+
+  ios-driver-testflight:
+    name: Orest Driver iOS — TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: codemagic-asc-api-key
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.orestexpress.driver
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+      node: 20
+      xcode: latest
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Capacitor sync
+        script: npx cap sync ios
+      - name: Stamp build number from CI
+        script: |
+          cd ios/App
+          BUILD_NUM=$(($(date +%s) / 60))
+          xcrun agvtool new-version -all $BUILD_NUM
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - jaroslavpospisil@icloud.com
+        notify:
+          success: true
+          failure: true
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
