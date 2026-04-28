@@ -159,3 +159,70 @@ workflows:
         notify:
           success: true
           failure: true
+
+  android-driver-release:
+    name: Orest Driver Android — Release APK
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      groups:
+        - signing  # ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_PASSWORD, ANDROID_KEY_ALIAS
+      vars:
+        BUNDLE_ID: "com.orestexpress.driver"
+      node: 22
+      java: 17
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Capacitor sync (Android)
+        script: npx cap sync android
+      - name: Inject google-services.json if provided
+        script: |
+          # Optional: paste the firebase google-services.json contents
+          # into Codemagic env var GOOGLE_SERVICES_JSON (Secret) for
+          # FCM push to activate. Without it the app still installs
+          # but native push is inactive (matches the iOS path).
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "Wrote google-services.json"
+          else
+            echo "GOOGLE_SERVICES_JSON env var not set — Firebase will be inactive"
+          fi
+      - name: Decode keystore from env
+        script: |
+          # Codemagic mounts ANDROID_KEYSTORE_B64 (Secret) — drop the
+          # decoded keystore at android/app/release.keystore and tell
+          # gradle where it lives via ANDROID_KEYSTORE_PATH.
+          echo "$ANDROID_KEYSTORE_B64" | base64 -d > android/app/release.keystore
+          echo "Decoded keystore: $(wc -c < android/app/release.keystore) bytes"
+      - name: Stamp build number
+        script: |
+          # versionCode must monotonically increase across uploads to
+          # Google Play. Use Codemagic's $BUILD_NUMBER (auto-incrementing
+          # per app) — gradle reads this in build.gradle.
+          echo "BUILD_NUMBER=$BUILD_NUMBER"
+      - name: Build signed release APK
+        script: |
+          cd android
+          export ANDROID_KEYSTORE_PATH="$CM_BUILD_DIR/orest-driver-mobile/android/app/release.keystore"
+          # CM_BUILD_DIR may differ; check both
+          [ -f "$ANDROID_KEYSTORE_PATH" ] || export ANDROID_KEYSTORE_PATH="$(pwd)/app/release.keystore"
+          ls -la "$ANDROID_KEYSTORE_PATH" || { echo "keystore not found"; exit 1; }
+          ./gradlew :app:assembleRelease --no-daemon
+          ls -la app/build/outputs/apk/release/
+    artifacts:
+      - orest-driver-mobile/android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/apk/release/*.apk
+    publishing:
+      email:
+        recipients:
+          - jaroslavpospisil@icloud.com
+        notify:
+          success: true
+          failure: true
