@@ -70,6 +70,31 @@ public class MainActivity extends BridgeActivity {
             audio
         ));
 
+        // Per-driver tone choice channels — selected via the in-app
+        // "Notification sound" picker. Same vibration pattern across
+        // all of them; only the sound differs.
+        long[] vibe = new long[]{0, 250, 150, 250};
+        nm.createNotificationChannel(buildChannel(
+            "orest_driver_bell", "Bell tone",
+            "Bell-like notification tone",
+            vibe, Uri.parse("android.resource://" + pkg + "/raw/bell"), audio
+        ));
+        nm.createNotificationChannel(buildChannel(
+            "orest_driver_glass", "Glass tone",
+            "Bright glassy ping tone",
+            vibe, Uri.parse("android.resource://" + pkg + "/raw/glass"), audio
+        ));
+        nm.createNotificationChannel(buildChannel(
+            "orest_driver_pulse", "Pulse tone",
+            "Two-pulse alert tone",
+            vibe, Uri.parse("android.resource://" + pkg + "/raw/pulse"), audio
+        ));
+        nm.createNotificationChannel(buildChannel(
+            "orest_driver_classic", "Classic tone",
+            "Classic two-tone phone ring",
+            vibe, Uri.parse("android.resource://" + pkg + "/raw/classic"), audio
+        ));
+
         // Legacy fallback — used when older payloads omit a channel_id.
         NotificationChannel def = new NotificationChannel(
             "orest_driver_default", "General",

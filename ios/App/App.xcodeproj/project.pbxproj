@@ -20,6 +20,10 @@
 		AAC862F0D33391AD7D4A1383 /* message.wav in Resources */ = {isa = PBXBuildFile; fileRef = 02C27B17910C054D78CD15F4 /* message.wav */; };
 		22E328CB257250948FDB12F3 /* load.wav in Resources */ = {isa = PBXBuildFile; fileRef = 233144FA2D35CFF49CBDD305 /* load.wav */; };
 		76899E6DBF8A75091718250E /* urgent.wav in Resources */ = {isa = PBXBuildFile; fileRef = 26B69063F8739AEF96911E29 /* urgent.wav */; };
+		0CAC8677F3472865477BB0B4 /* bell.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5F7FE69DF62068D34A624C19 /* bell.wav */; };
+		2703B59D0E8CA3BC68B4363B /* glass.wav in Resources */ = {isa = PBXBuildFile; fileRef = D67FABD9CFEE94980B88C6BE /* glass.wav */; };
+		E96B6E656BF93A67329350C4 /* pulse.wav in Resources */ = {isa = PBXBuildFile; fileRef = A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */; };
+		95BB1B2E02D4674450886A25 /* classic.wav in Resources */ = {isa = PBXBuildFile; fileRef = C78A0E4E3DFDC18A03BCCD6B /* classic.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +42,10 @@
 		02C27B17910C054D78CD15F4 /* message.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = message.wav; sourceTree = "<group>"; };
 		233144FA2D35CFF49CBDD305 /* load.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = load.wav; sourceTree = "<group>"; };
 		26B69063F8739AEF96911E29 /* urgent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = urgent.wav; sourceTree = "<group>"; };
+		5F7FE69DF62068D34A624C19 /* bell.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = bell.wav; sourceTree = "<group>"; };
+		D67FABD9CFEE94980B88C6BE /* glass.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = glass.wav; sourceTree = "<group>"; };
+		A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pulse.wav; sourceTree = "<group>"; };
+		C78A0E4E3DFDC18A03BCCD6B /* classic.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = classic.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,6 +95,10 @@
 				02C27B17910C054D78CD15F4 /* message.wav */,
 				233144FA2D35CFF49CBDD305 /* load.wav */,
 				26B69063F8739AEF96911E29 /* urgent.wav */,
+				5F7FE69DF62068D34A624C19 /* bell.wav */,
+				D67FABD9CFEE94980B88C6BE /* glass.wav */,
+				A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */,
+				C78A0E4E3DFDC18A03BCCD6B /* classic.wav */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -176,6 +188,10 @@
 				AAC862F0D33391AD7D4A1383 /* message.wav in Resources */,
 				22E328CB257250948FDB12F3 /* load.wav in Resources */,
 				76899E6DBF8A75091718250E /* urgent.wav in Resources */,
+				0CAC8677F3472865477BB0B4 /* bell.wav in Resources */,
+				2703B59D0E8CA3BC68B4363B /* glass.wav in Resources */,
+				E96B6E656BF93A67329350C4 /* pulse.wav in Resources */,
+				95BB1B2E02D4674450886A25 /* classic.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
