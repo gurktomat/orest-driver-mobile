@@ -6,12 +6,10 @@ workflows:
     integrations:
       app_store_connect: codemagic-asc-api-key
     environment:
-      ios_signing:
-        distribution_type: ad_hoc
-        bundle_identifier: com.orestexpress.driver
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
+        BUNDLE_ID: "com.orestexpress.driver"
       node: 20
       xcode: latest
     triggering:
@@ -27,9 +25,6 @@ workflows:
         script: npx cap sync ios
       - name: Inject GoogleService-Info.plist if provided
         script: |
-          # Path A: env var unset → AppDelegate's defensive guard skips Firebase init.
-          # Path B: paste the plist contents into Codemagic env var GOOGLE_SERVICES_PLIST
-          #         (Secret) and the file lands in the app bundle automatically.
           if [ -n "$GOOGLE_SERVICES_PLIST" ]; then
             printf '%s' "$GOOGLE_SERVICES_PLIST" > ios/App/App/GoogleService-Info.plist
             echo "Wrote GoogleService-Info.plist ($(wc -c < ios/App/App/GoogleService-Info.plist) bytes)"
@@ -41,8 +36,20 @@ workflows:
           cd ios/App
           BUILD_NUM=$(($(date +%s) / 60))
           xcrun agvtool new-version -all $BUILD_NUM
-      - name: Set up code signing
-        script: xcode-project use-profiles
+      - name: Fetch signing files (cert + provisioning profile)
+        script: |
+          # Explicit signing path — bypasses the magic `ios_signing:` block
+          # which kept failing with "no matching profiles" even though the
+          # profile T7JTY4JRFW (Ad Hoc) is live and bound to the bundle ID.
+          # The --create flag lets the CLI provision a fresh profile if one
+          # doesn't already exist, using our Admin-role API key.
+          app-store-connect fetch-signing-files \
+            "$BUNDLE_ID" \
+            --type IOS_APP_ADHOC \
+            --create
+          keychain initialize
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Build IPA
         script: |
           xcode-project build-ipa \
@@ -66,12 +73,10 @@ workflows:
     integrations:
       app_store_connect: codemagic-asc-api-key
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.orestexpress.driver
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
+        BUNDLE_ID: "com.orestexpress.driver"
       node: 20
       xcode: latest
     scripts:
@@ -92,8 +97,15 @@ workflows:
           cd ios/App
           BUILD_NUM=$(($(date +%s) / 60))
           xcrun agvtool new-version -all $BUILD_NUM
-      - name: Set up code signing
-        script: xcode-project use-profiles
+      - name: Fetch signing files (cert + provisioning profile)
+        script: |
+          app-store-connect fetch-signing-files \
+            "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain initialize
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Build IPA
         script: |
           xcode-project build-ipa \
