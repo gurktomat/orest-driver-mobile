@@ -12,22 +12,18 @@ import com.getcapacitor.BridgeActivity;
 /**
  * Orest Driver — Capacitor host activity.
  *
- * Registers two FCM notification channels at app start so dispatchers can
- * pick the right priority/tone per event type via the FCM payload:
+ * Registers FCM notification channels at app start so the backend can pick
+ * the right tone per event type via the channel_id field on each payload.
+ * Channel sounds are immutable after first install on the device — the
+ * channel name is what makes them distinct here.
  *
- *   "orest_driver_default" — IMPORTANCE_HIGH, vibrates, plays system default
- *                            sound. Used for messages + general alerts.
- *   "orest_driver_urgent"  — IMPORTANCE_HIGH, vibrates, plays a custom sound
- *                            (raw/load_assigned). Used for new-load assignment.
- *
- * To add a custom tone: drop a .mp3/.ogg into
- *   android/app/src/main/res/raw/<name>.mp3
- * then reference it via:
- *   Uri.parse("android.resource://" + getPackageName() + "/raw/<name>")
- *
- * Channels are created on first run only; once a driver has a channel, only
- * the OS notification settings can change its sound. That's intentional —
- * the user owns their notification UX after install.
+ *   orest_driver_message — message.mp3 (gentle 2-tone chime)
+ *                          Used for new dispatcher messages.
+ *   orest_driver_load    — load.mp3 (ascending C-E-G chord)
+ *                          Used for new load assignments.
+ *   orest_driver_urgent  — urgent.mp3 (3 rapid beeps)
+ *                          Used for pickup reminders / time-sensitive alerts.
+ *   orest_driver_default — system default sound (legacy fallback).
  */
 public class MainActivity extends BridgeActivity {
     @Override
@@ -44,44 +40,60 @@ public class MainActivity extends BridgeActivity {
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (nm == null) return;
 
-        // 1. Default channel — used by FCM when payload omits an explicit channel.
+        AudioAttributes audio = new AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .build();
+        String pkg = getPackageName();
+
+        nm.createNotificationChannel(buildChannel(
+            "orest_driver_message", "New messages",
+            "Dispatcher messages",
+            new long[]{0, 200, 100, 200},
+            Uri.parse("android.resource://" + pkg + "/raw/message"),
+            audio
+        ));
+
+        nm.createNotificationChannel(buildChannel(
+            "orest_driver_load", "Load assignments",
+            "New loads tendered to you",
+            new long[]{0, 300, 150, 300},
+            Uri.parse("android.resource://" + pkg + "/raw/load"),
+            audio
+        ));
+
+        nm.createNotificationChannel(buildChannel(
+            "orest_driver_urgent", "Urgent alerts",
+            "Pickup reminders and time-sensitive dispatch",
+            new long[]{0, 400, 200, 400, 200, 400},
+            Uri.parse("android.resource://" + pkg + "/raw/urgent"),
+            audio
+        ));
+
+        // Legacy fallback — used when older payloads omit a channel_id.
         NotificationChannel def = new NotificationChannel(
-            "orest_driver_default",
-            "Loads & messages",
+            "orest_driver_default", "General",
             NotificationManager.IMPORTANCE_HIGH
         );
-        def.setDescription("Load assignments and dispatcher messages");
+        def.setDescription("Default notification channel");
         def.enableVibration(true);
-        def.setVibrationPattern(new long[]{0, 250, 200, 250});
-        def.enableLights(true);
         def.setShowBadge(true);
         nm.createNotificationChannel(def);
+    }
 
-        // 2. Urgent channel — for new load tenders. Same sound as default for
-        // now; once a custom .mp3 is dropped in res/raw/load_assigned.mp3,
-        // uncomment the setSound() block below to use it.
-        NotificationChannel urgent = new NotificationChannel(
-            "orest_driver_urgent",
-            "Urgent: new load",
-            NotificationManager.IMPORTANCE_HIGH
+    private NotificationChannel buildChannel(
+        String id, String name, String description,
+        long[] vibration, Uri sound, AudioAttributes audio
+    ) {
+        NotificationChannel ch = new NotificationChannel(
+            id, name, NotificationManager.IMPORTANCE_HIGH
         );
-        urgent.setDescription("New load assigned to you");
-        urgent.enableVibration(true);
-        urgent.setVibrationPattern(new long[]{0, 400, 200, 400, 200, 400});
-        urgent.enableLights(true);
-        urgent.setShowBadge(true);
-        urgent.setBypassDnd(false); // Drivers control DND themselves.
-
-        // To enable a custom sound for the urgent channel, drop a file at
-        // android/app/src/main/res/raw/load_assigned.mp3 and uncomment:
-        //
-        // AudioAttributes audio = new AudioAttributes.Builder()
-        //     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-        //     .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-        //     .build();
-        // Uri uri = Uri.parse("android.resource://" + getPackageName() + "/raw/load_assigned");
-        // urgent.setSound(uri, audio);
-
-        nm.createNotificationChannel(urgent);
+        ch.setDescription(description);
+        ch.enableVibration(true);
+        ch.setVibrationPattern(vibration);
+        ch.enableLights(true);
+        ch.setShowBadge(true);
+        ch.setSound(sound, audio);
+        return ch;
     }
 }

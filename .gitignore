@@ -29,3 +29,4 @@ ios/App/App/AuthKey_*.p8
 .DS_Store
 .idea/
 *.log
+sounds/

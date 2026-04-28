@@ -17,6 +17,9 @@
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		62A83DCF2FA022B4004D94A4 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 62A83DCE2FA022B4004D94A4 /* FirebaseMessaging */; };
 		E753E9CE493A95314AE36FDE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 119857CA504F071EFB89142B /* GoogleService-Info.plist */; };
+		AAC862F0D33391AD7D4A1383 /* message.wav in Resources */ = {isa = PBXBuildFile; fileRef = 02C27B17910C054D78CD15F4 /* message.wav */; };
+		22E328CB257250948FDB12F3 /* load.wav in Resources */ = {isa = PBXBuildFile; fileRef = 233144FA2D35CFF49CBDD305 /* load.wav */; };
+		76899E6DBF8A75091718250E /* urgent.wav in Resources */ = {isa = PBXBuildFile; fileRef = 26B69063F8739AEF96911E29 /* urgent.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +35,9 @@
 		62A83DD02FA023B2004D94A4 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
 		119857CA504F071EFB89142B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		02C27B17910C054D78CD15F4 /* message.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = message.wav; sourceTree = "<group>"; };
+		233144FA2D35CFF49CBDD305 /* load.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = load.wav; sourceTree = "<group>"; };
+		26B69063F8739AEF96911E29 /* urgent.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = urgent.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +84,9 @@
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 				119857CA504F071EFB89142B /* GoogleService-Info.plist */,
+				02C27B17910C054D78CD15F4 /* message.wav */,
+				233144FA2D35CFF49CBDD305 /* load.wav */,
+				26B69063F8739AEF96911E29 /* urgent.wav */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -164,6 +173,9 @@
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
 				E753E9CE493A95314AE36FDE /* GoogleService-Info.plist in Resources */,
+				AAC862F0D33391AD7D4A1383 /* message.wav in Resources */,
+				22E328CB257250948FDB12F3 /* load.wav in Resources */,
+				76899E6DBF8A75091718250E /* urgent.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
