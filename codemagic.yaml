@@ -138,6 +138,19 @@ workflows:
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
+      - name: Publish IPA to App Store Connect (TestFlight)
+        script: |
+          # Codemagic's publishing.app_store_connect block requires
+          # `auth: integration` (it doesn't accept env), and our setup
+          # uses env-var auth from the `signing` group — declaring an
+          # integration alongside an explicit groups: list previously
+          # caused ASC API 401s. Calling app-store-connect publish
+          # directly avoids that conflict and uses the same env vars
+          # already used by fetch-signing-files.
+          app-store-connect publish \
+            --path "build/ios/ipa/App.ipa" \
+            --testflight \
+            --skip-package-validation
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
@@ -148,11 +161,3 @@ workflows:
         notify:
           success: true
           failure: true
-      app_store_connect:
-        # auth: env reads APP_STORE_CONNECT_* from env vars (the
-        # signing group), since we no longer use integrations:
-        auth: env
-        submit_to_testflight: true
-        # beta_groups intentionally omitted for first build —
-        # tester management happens manually in App Store Connect → TestFlight UI.
-        # Once an "Internal Testers" group exists there, add it back here.
