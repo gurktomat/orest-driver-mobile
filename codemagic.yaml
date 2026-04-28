@@ -3,14 +3,18 @@ workflows:
     name: Orest Driver iOS — Ad-hoc IPA
     instance_type: mac_mini_m2
     max_build_duration: 60
-    integrations:
-      app_store_connect: codemagic-asc-api-key
     environment:
-      # Per Codemagic docs: omitting `groups:` loads ALL groups by default,
-      # which means the app_store_connect integration's auto-injected env
-      # vars AND our `signing` group's CERTIFICATE_PRIVATE_KEY both load.
-      # Build #14/15 (with explicit groups: [default|signing]) failed with
-      # ASC API 401 because explicit groups suppress integration injection.
+      # The `signing` group holds:
+      #   APP_STORE_CONNECT_KEY_IDENTIFIER (.p8 key id)
+      #   APP_STORE_CONNECT_ISSUER_ID
+      #   APP_STORE_CONNECT_PRIVATE_KEY (the .p8 file contents)
+      #   CERTIFICATE_PRIVATE_KEY (RSA private key for IPA signing)
+      # Driving ASC auth ourselves means we drop the
+      # integrations.app_store_connect block — declaring `groups:`
+      # was suppressing the integration's auto-injected env vars
+      # and causing ASC API 401s in builds #14-16.
+      groups:
+        - signing
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
@@ -83,14 +87,18 @@ workflows:
     name: Orest Driver iOS — TestFlight
     instance_type: mac_mini_m2
     max_build_duration: 60
-    integrations:
-      app_store_connect: codemagic-asc-api-key
     environment:
-      # Per Codemagic docs: omitting `groups:` loads ALL groups by default,
-      # which means the app_store_connect integration's auto-injected env
-      # vars AND our `signing` group's CERTIFICATE_PRIVATE_KEY both load.
-      # Build #14/15 (with explicit groups: [default|signing]) failed with
-      # ASC API 401 because explicit groups suppress integration injection.
+      # The `signing` group holds:
+      #   APP_STORE_CONNECT_KEY_IDENTIFIER (.p8 key id)
+      #   APP_STORE_CONNECT_ISSUER_ID
+      #   APP_STORE_CONNECT_PRIVATE_KEY (the .p8 file contents)
+      #   CERTIFICATE_PRIVATE_KEY (RSA private key for IPA signing)
+      # Driving ASC auth ourselves means we drop the
+      # integrations.app_store_connect block — declaring `groups:`
+      # was suppressing the integration's auto-injected env vars
+      # and causing ASC API 401s in builds #14-16.
+      groups:
+        - signing
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
@@ -141,7 +149,9 @@ workflows:
           success: true
           failure: true
       app_store_connect:
-        auth: integration
+        # auth: env reads APP_STORE_CONNECT_* from env vars (the
+        # signing group), since we no longer use integrations:
+        auth: env
         submit_to_testflight: true
         # beta_groups intentionally omitted for first build —
         # tester management happens manually in App Store Connect → TestFlight UI.
