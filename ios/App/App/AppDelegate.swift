@@ -10,8 +10,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        FirebaseApp.configure()
-        Messaging.messaging().delegate = self
+        // Configure Firebase only when GoogleService-Info.plist is bundled.
+        // Lets the IPA build & launch even before the plist is provisioned in Codemagic;
+        // FCM activates automatically once the plist lands in the app bundle.
+        if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
+            FirebaseApp.configure()
+            Messaging.messaging().delegate = self
+        }
         UNUserNotificationCenter.current().delegate = self
         return true
     }

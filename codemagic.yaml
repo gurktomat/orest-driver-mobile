@@ -25,14 +25,17 @@ workflows:
         script: npm ci
       - name: Capacitor sync
         script: npx cap sync ios
-      - name: Add Firebase iOS SDK via SPM
+      - name: Inject GoogleService-Info.plist if provided
         script: |
-          # Firebase iOS SDK is referenced from AppDelegate.swift; SPM resolves it during xcodebuild.
-          # Codemagic has the package added in Xcode project. If not yet, run once locally on iMac:
-          #   open ios/App/App.xcworkspace
-          #   File → Add Package Dependencies → https://github.com/firebase/firebase-ios-sdk
-          # Tick FirebaseMessaging + FirebaseAnalytics, commit Package.resolved, push.
-          true
+          # Path A: env var unset → AppDelegate's defensive guard skips Firebase init.
+          # Path B: paste the plist contents into Codemagic env var GOOGLE_SERVICES_PLIST
+          #         (Secret) and the file lands in the app bundle automatically.
+          if [ -n "$GOOGLE_SERVICES_PLIST" ]; then
+            printf '%s' "$GOOGLE_SERVICES_PLIST" > ios/App/App/GoogleService-Info.plist
+            echo "Wrote GoogleService-Info.plist ($(wc -c < ios/App/App/GoogleService-Info.plist) bytes)"
+          else
+            echo "GOOGLE_SERVICES_PLIST env var not set — Firebase will be inactive in this build"
+          fi
       - name: Stamp build number from CI
         script: |
           cd ios/App
