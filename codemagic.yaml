@@ -6,6 +6,8 @@ workflows:
     integrations:
       app_store_connect: codemagic-asc-api-key
     environment:
+      groups:
+        - default  # exposes CERTIFICATE_PRIVATE_KEY (Secret) to the build
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
@@ -81,6 +83,8 @@ workflows:
     integrations:
       app_store_connect: codemagic-asc-api-key
     environment:
+      groups:
+        - default  # exposes CERTIFICATE_PRIVATE_KEY (Secret) to the build
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
