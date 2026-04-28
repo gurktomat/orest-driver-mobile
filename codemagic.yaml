@@ -10,7 +10,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.orestexpress.driver"
-      node: 20
+      node: 22
       xcode: latest
     triggering:
       events:
@@ -77,7 +77,7 @@ workflows:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.orestexpress.driver"
-      node: 20
+      node: 22
       xcode: latest
     scripts:
       - name: Install npm dependencies
