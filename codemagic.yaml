@@ -6,8 +6,11 @@ workflows:
     integrations:
       app_store_connect: codemagic-asc-api-key
     environment:
-      groups:
-        - signing  # exposes CERTIFICATE_PRIVATE_KEY (Secret) to the build
+      # Per Codemagic docs: omitting `groups:` loads ALL groups by default,
+      # which means the app_store_connect integration's auto-injected env
+      # vars AND our `signing` group's CERTIFICATE_PRIVATE_KEY both load.
+      # Build #14/15 (with explicit groups: [default|signing]) failed with
+      # ASC API 401 because explicit groups suppress integration injection.
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
@@ -83,8 +86,11 @@ workflows:
     integrations:
       app_store_connect: codemagic-asc-api-key
     environment:
-      groups:
-        - signing  # exposes CERTIFICATE_PRIVATE_KEY (Secret) to the build
+      # Per Codemagic docs: omitting `groups:` loads ALL groups by default,
+      # which means the app_store_connect integration's auto-injected env
+      # vars AND our `signing` group's CERTIFICATE_PRIVATE_KEY both load.
+      # Build #14/15 (with explicit groups: [default|signing]) failed with
+      # ASC API 401 because explicit groups suppress integration injection.
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
