@@ -207,18 +207,20 @@ workflows:
           # Google Play. Use Codemagic's $BUILD_NUMBER (auto-incrementing
           # per app) — gradle reads this in build.gradle.
           echo "BUILD_NUMBER=$BUILD_NUMBER"
-      - name: Build signed release APK
+      - name: Build signed release APK + AAB
         script: |
           cd android
           export ANDROID_KEYSTORE_PATH="$CM_BUILD_DIR/orest-driver-mobile/android/app/release.keystore"
-          # CM_BUILD_DIR may differ; check both
           [ -f "$ANDROID_KEYSTORE_PATH" ] || export ANDROID_KEYSTORE_PATH="$(pwd)/app/release.keystore"
           ls -la "$ANDROID_KEYSTORE_PATH" || { echo "keystore not found"; exit 1; }
-          ./gradlew :app:assembleRelease --no-daemon
+          # APK = sideload at orestexpress.online/orest-driver.apk.
+          # AAB = Google Play upload format (required since Aug 2021).
+          ./gradlew :app:assembleRelease :app:bundleRelease --no-daemon
           ls -la app/build/outputs/apk/release/
+          ls -la app/build/outputs/bundle/release/
     artifacts:
-      - orest-driver-mobile/android/app/build/outputs/apk/release/*.apk
       - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/bundle/release/*.aab
     publishing:
       email:
         recipients:
