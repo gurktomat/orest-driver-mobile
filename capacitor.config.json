@@ -1,0 +1,40 @@
+{
+  "appId": "com.orestexpress.driver",
+  "appName": "Orest Driver",
+  "webDir": "web",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://orestexpress.online/driver/dashboard",
+    "cleartext": false,
+    "androidScheme": "https",
+    "allowNavigation": [
+      "orestexpress.online",
+      "*.orestexpress.online",
+      "api.samsara.com",
+      "api.tomtom.com",
+      "api.mapbox.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": true,
+    "backgroundColor": "#0d0f14"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "launchAutoHide": true,
+      "backgroundColor": "#0d0f14",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "backgroundColor": "#0d0f14",
+      "style": "DARK"
+    }
+  }
+}
