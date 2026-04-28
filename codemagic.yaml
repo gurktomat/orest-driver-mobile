@@ -140,15 +140,14 @@ workflows:
             --scheme "$XCODE_SCHEME"
       - name: Publish IPA to App Store Connect (TestFlight)
         script: |
-          # Upload to App Store Connect only — do NOT attempt external
-          # beta submission (--testflight flag), which requires a
-          # populated Test Information form (feedback email + reviewer
-          # contact). Internal testers (the dev team) can install
-          # immediately once the build finishes processing in ASC.
-          # Add --testflight back after Test Information is filled at
-          # https://appstoreconnect.apple.com/apps/6764219438/testflight/test-info
+          # Test Information has been populated (feedback email,
+          # reviewer contact, demo creds 7737444848 / 8186, privacy
+          # URL). The --testflight flag now auto-submits each build
+          # to Apple beta review and pushes it to the
+          # "Drivers (External)" public-link group when approved.
           app-store-connect publish \
             --path "build/ios/ipa/App.ipa" \
+            --testflight \
             --skip-package-validation
     artifacts:
       - build/ios/ipa/*.ipa
