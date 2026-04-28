@@ -140,16 +140,15 @@ workflows:
             --scheme "$XCODE_SCHEME"
       - name: Publish IPA to App Store Connect (TestFlight)
         script: |
-          # Codemagic's publishing.app_store_connect block requires
-          # `auth: integration` (it doesn't accept env), and our setup
-          # uses env-var auth from the `signing` group — declaring an
-          # integration alongside an explicit groups: list previously
-          # caused ASC API 401s. Calling app-store-connect publish
-          # directly avoids that conflict and uses the same env vars
-          # already used by fetch-signing-files.
+          # Upload to App Store Connect only — do NOT attempt external
+          # beta submission (--testflight flag), which requires a
+          # populated Test Information form (feedback email + reviewer
+          # contact). Internal testers (the dev team) can install
+          # immediately once the build finishes processing in ASC.
+          # Add --testflight back after Test Information is filled at
+          # https://appstoreconnect.apple.com/apps/6764219438/testflight/test-info
           app-store-connect publish \
             --path "build/ios/ipa/App.ipa" \
-            --testflight \
             --skip-package-validation
     artifacts:
       - build/ios/ipa/*.ipa
