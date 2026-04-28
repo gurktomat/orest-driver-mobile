@@ -43,9 +43,17 @@ workflows:
           # profile T7JTY4JRFW (Ad Hoc) is live and bound to the bundle ID.
           # The --create flag lets the CLI provision a fresh profile if one
           # doesn't already exist, using our Admin-role API key.
+          # CERTIFICATE_PRIVATE_KEY env var holds an RSA private key that
+          # we generated and uploaded as a Codemagic Secret. The CLI
+          # signs a CSR with this key, asks ASC to mint a fresh
+          # IOS_DISTRIBUTION cert from it, and reuses the same private
+          # key on disk for IPA signing. --create also forces a fresh
+          # provisioning profile that includes all current bundle ID
+          # capabilities (push notifications, etc.).
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_ADHOC \
+            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY \
             --create
           keychain initialize
           keychain add-certificates
@@ -102,6 +110,7 @@ workflows:
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY \
             --create
           keychain initialize
           keychain add-certificates
