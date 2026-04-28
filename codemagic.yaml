@@ -79,6 +79,14 @@ workflows:
         script: npm ci
       - name: Capacitor sync
         script: npx cap sync ios
+      - name: Inject GoogleService-Info.plist if provided
+        script: |
+          if [ -n "$GOOGLE_SERVICES_PLIST" ]; then
+            printf '%s' "$GOOGLE_SERVICES_PLIST" > ios/App/App/GoogleService-Info.plist
+            echo "Wrote GoogleService-Info.plist ($(wc -c < ios/App/App/GoogleService-Info.plist) bytes)"
+          else
+            echo "GOOGLE_SERVICES_PLIST env var not set — Firebase will be inactive in this build"
+          fi
       - name: Stamp build number from CI
         script: |
           cd ios/App
@@ -104,5 +112,6 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        beta_groups:
-          - Internal Testers
+        # beta_groups intentionally omitted for first build —
+        # tester management happens manually in App Store Connect → TestFlight UI.
+        # Once an "Internal Testers" group exists there, add it back here.
