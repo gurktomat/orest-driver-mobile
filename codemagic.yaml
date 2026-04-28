@@ -162,7 +162,7 @@ workflows:
 
   android-driver-release:
     name: Orest Driver Android — Release APK
-    instance_type: linux_x2
+    instance_type: linux_x1
     max_build_duration: 60
     environment:
       groups:
