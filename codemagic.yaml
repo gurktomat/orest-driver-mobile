@@ -142,13 +142,29 @@ workflows:
         script: |
           # Test Information has been populated (feedback email,
           # reviewer contact, demo creds 7737444848 / 8186, privacy
-          # URL). The --testflight flag now auto-submits each build
-          # to Apple beta review and pushes it to the
-          # "Drivers (External)" public-link group when approved.
-          app-store-connect publish \
-            --path "build/ios/ipa/App.ipa" \
-            --testflight \
-            --skip-package-validation
+          # URL). --testflight submits to Apple beta review.
+          # --beta-group flags auto-assign the build to each named
+          # TestFlight group — without them ASC processes the build
+          # but it stays invisible to all testers (Internal included)
+          # until manually attached in App Store Connect → TestFlight.
+          set -o pipefail
+          LOG=$(mktemp)
+          if app-store-connect publish \
+              --path "build/ios/ipa/App.ipa" \
+              --testflight \
+              --beta-group "Internal Testers" \
+              --beta-group "Drivers (External)" 2>&1 | tee "$LOG"; then
+            echo "publish_status=ok"
+            exit 0
+          fi
+          if grep -qE 'Another build is in review|same train is already in beta review' "$LOG"; then
+            echo "publish_status=uploaded_external_review_deferred"
+            echo "Build uploaded to App Store Connect and is on TestFlight Internal."
+            echo "External beta-review submission deferred — previous build still in Apple review."
+            exit 0
+          fi
+          echo "publish_status=failed"
+          exit 1
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
