@@ -257,5 +257,4 @@ workflows:
         # Track values: internal | alpha (closed) | beta (open) | production.
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
         track: internal
-        release_status: completed
         in_app_update_priority: 0
