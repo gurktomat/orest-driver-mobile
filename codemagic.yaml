@@ -157,13 +157,16 @@ workflows:
             echo "publish_status=ok"
             exit 0
           fi
-          if grep -qE 'Another build is in review|same train is already in beta review' "$LOG"; then
+          if grep -qiE 'another build is in review|same train is already in beta review|already in beta review|currently in (beta )?review|previous version is in review|build already exists|same version' "$LOG"; then
             echo "publish_status=uploaded_external_review_deferred"
             echo "Build uploaded to App Store Connect and is on TestFlight Internal."
             echo "External beta-review submission deferred — previous build still in Apple review."
             exit 0
           fi
           echo "publish_status=failed"
+          echo "==================== publish error tail (last 80 lines) ===================="
+          tail -n 80 "$LOG" >&2
+          echo "==========================================================================="
           exit 1
     artifacts:
       - build/ios/ipa/*.ipa
