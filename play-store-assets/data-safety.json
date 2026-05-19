@@ -1,0 +1,93 @@
+{
+  "_comment": "Reference for the Play Console Data Safety form (Orest Driver, com.orestexpress.driver). Each entry is what to enter for each prompt. Keep this in sync with ios/App/App/PrivacyInfo.xcprivacy — the same data crossings the same boundaries must answer the same way on both stores.",
+  "_form_url": "https://play.google.com/console/u/0/developers/-/app/-/app-content/data-privacy-security",
+  "data_collected": [
+    {
+      "type": "Approximate location",
+      "collected": false,
+      "_note": "We collect only precise location."
+    },
+    {
+      "type": "Precise location",
+      "collected": true,
+      "shared": false,
+      "optional": false,
+      "purposes": ["App functionality"],
+      "_note": "Only while a load is active; the driver can opt out per device. Foreground + significant-change only — no ACCESS_BACKGROUND_LOCATION."
+    },
+    {
+      "type": "User IDs (account-level)",
+      "collected": true,
+      "shared": false,
+      "optional": false,
+      "purposes": ["Account management", "App functionality"],
+      "_note": "driver_id internal to the tenant."
+    },
+    {
+      "type": "Phone number",
+      "collected": true,
+      "shared": false,
+      "optional": false,
+      "purposes": ["Account management", "App functionality"],
+      "_note": "Primary login credential."
+    },
+    {
+      "type": "Email address",
+      "collected": true,
+      "shared": false,
+      "optional": true,
+      "purposes": ["App functionality"]
+    },
+    {
+      "type": "Name",
+      "collected": true,
+      "shared": false,
+      "optional": false,
+      "purposes": ["Account management", "App functionality"]
+    },
+    {
+      "type": "Photos",
+      "collected": true,
+      "shared": false,
+      "optional": true,
+      "purposes": ["App functionality"],
+      "_note": "BOL/POD/damage captures attached to a shipment record."
+    },
+    {
+      "type": "Device or other IDs",
+      "collected": true,
+      "shared": "with Google",
+      "optional": false,
+      "purposes": ["App functionality"],
+      "_note": "FCM push registration token, biometric refresh-token device id."
+    },
+    {
+      "type": "Crash logs",
+      "collected": true,
+      "shared": false,
+      "optional": false,
+      "purposes": ["Analytics"],
+      "_note": "Sentry. No PII beyond the user-id tag; stack frames are scrubbed for tokens."
+    },
+    {
+      "type": "Diagnostics / performance",
+      "collected": true,
+      "shared": false,
+      "optional": false,
+      "purposes": ["Analytics"],
+      "_note": "Sentry traces + PostHog page-view samples."
+    }
+  ],
+  "security_practices": {
+    "data_encrypted_in_transit": true,
+    "data_can_be_deleted_by_user_request": true,
+    "_delete_request_path": "Driver contacts dispatch / HR — admin clears the account; biometric tokens are auto-revoked.",
+    "follows_play_families_policy": false,
+    "independent_security_review": false
+  },
+  "_remember_when_updating": [
+    "If you add a new data type to PrivacyInfo.xcprivacy, add it here too — and vice versa.",
+    "If a data type becomes optional (e.g. behind a profile toggle), set 'optional': true and document the toggle path.",
+    "Whenever you change a 'shared' answer, sync the iOS App Privacy details in App Store Connect (same data, separate UI)."
+  ]
+}

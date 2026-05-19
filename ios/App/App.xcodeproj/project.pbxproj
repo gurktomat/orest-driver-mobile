@@ -24,6 +24,7 @@
 		2703B59D0E8CA3BC68B4363B /* glass.wav in Resources */ = {isa = PBXBuildFile; fileRef = D67FABD9CFEE94980B88C6BE /* glass.wav */; };
 		E96B6E656BF93A67329350C4 /* pulse.wav in Resources */ = {isa = PBXBuildFile; fileRef = A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */; };
 		95BB1B2E02D4674450886A25 /* classic.wav in Resources */ = {isa = PBXBuildFile; fileRef = C78A0E4E3DFDC18A03BCCD6B /* classic.wav */; };
+		1E20915C08CA77D3355BDB1D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4397C4A772119BEF4DDF16A9 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 		D67FABD9CFEE94980B88C6BE /* glass.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = glass.wav; sourceTree = "<group>"; };
 		A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pulse.wav; sourceTree = "<group>"; };
 		C78A0E4E3DFDC18A03BCCD6B /* classic.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = classic.wav; sourceTree = "<group>"; };
+		4397C4A772119BEF4DDF16A9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +91,7 @@
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
 				504EC3131FED79650016851F /* Info.plist */,
+				4397C4A772119BEF4DDF16A9 /* PrivacyInfo.xcprivacy */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 				119857CA504F071EFB89142B /* GoogleService-Info.plist */,
@@ -178,6 +181,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1E20915C08CA77D3355BDB1D /* PrivacyInfo.xcprivacy in Resources */,
 				504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */,
 				50B271D11FEDC1A000F3C39B /* public in Resources */,
 				504EC30F1FED79650016851F /* Assets.xcassets in Resources */,
