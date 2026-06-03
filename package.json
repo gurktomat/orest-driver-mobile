@@ -31,7 +31,6 @@
     "@capacitor/push-notifications": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
-    "@capacitor-community/background-geolocation": "^1.2.26",
     "@capgo/capacitor-native-biometric": "^8.4.2"
   },
   "devDependencies": {

@@ -51,12 +51,7 @@
 	<array>
 		<string>remote-notification</string>
 		<string>fetch</string>
-		<string>location</string>
 	</array>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Used to share your truck position with dispatch while you are on duty.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Used to share your truck position with dispatch even when the app is in the background.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Used to capture BOLs, PODs, DVIRs, and other shipment documents.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
