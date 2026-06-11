@@ -64,5 +64,11 @@
 	<string>Used to unlock the driver app without re-typing your password.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Required for Service Workers in WKWebView (offline app shell). Keep in
+	     sync with ios.limitsNavigationsToAppBoundDomains in capacitor.config.json. -->
+	<key>WKAppBoundDomains</key>
+	<array>
+		<string>orestexpress.online</string>
+	</array>
 </dict>
 </plist>

@@ -22,7 +22,7 @@
   },
   "ios": {
     "backgroundColor": "#0d0f14",
-    "limitsNavigationsToAppBoundDomains": false,
+    "limitsNavigationsToAppBoundDomains": true,
     "scrollEnabled": true,
     "contentInset": "automatic"
   },
