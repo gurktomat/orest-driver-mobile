@@ -18,13 +18,15 @@
   "android": {
     "allowMixedContent": false,
     "webContentsDebuggingEnabled": true,
-    "backgroundColor": "#0d0f14"
+    "backgroundColor": "#0d0f14",
+    "zoomEnabled": true
   },
   "ios": {
     "backgroundColor": "#0d0f14",
     "limitsNavigationsToAppBoundDomains": true,
     "scrollEnabled": true,
-    "contentInset": "never"
+    "contentInset": "never",
+    "zoomEnabled": true
   },
   "plugins": {
     "PushNotifications": {
