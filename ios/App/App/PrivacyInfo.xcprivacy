@@ -27,21 +27,11 @@
 
   <key>NSPrivacyCollectedDataTypes</key>
   <array>
-    <!-- Precise location: foreground/significant-change GPS beacon.
-         Linked to driver identity so dispatch can attribute the position.
-         Used for app functionality (live position on dispatch map). -->
-    <dict>
-      <key>NSPrivacyCollectedDataType</key>
-      <string>NSPrivacyCollectedDataTypePreciseLocation</string>
-      <key>NSPrivacyCollectedDataTypeLinked</key>
-      <true/>
-      <key>NSPrivacyCollectedDataTypeTracking</key>
-      <false/>
-      <key>NSPrivacyCollectedDataTypePurposes</key>
-      <array>
-        <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
-      </array>
-    </dict>
+    <!-- Location: NOT collected. All location permissions and the
+         background-geolocation plugin were removed (b336518); vehicle
+         positions come from Samsara telematics hardware, not this app.
+         If location returns, re-add the PreciseLocation dict here AND in
+         play-store-assets/data-safety.json. -->
 
     <!-- Driver phone number: primary login credential. -->
     <dict>

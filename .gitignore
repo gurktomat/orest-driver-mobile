@@ -30,3 +30,6 @@ ios/App/App/AuthKey_*.p8
 .idea/
 *.log
 sounds/
+
+# store screenshot output (regenerate via capture-screenshots.mjs)
+play-store-assets/shots/

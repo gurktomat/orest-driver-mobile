@@ -4,16 +4,12 @@
   "data_collected": [
     {
       "type": "Approximate location",
-      "collected": false,
-      "_note": "We collect only precise location."
+      "collected": false
     },
     {
       "type": "Precise location",
-      "collected": true,
-      "shared": false,
-      "optional": false,
-      "purposes": ["App functionality"],
-      "_note": "Only while a load is active; the driver can opt out per device. Foreground + significant-change only — no ACCESS_BACKGROUND_LOCATION."
+      "collected": false,
+      "_note": "NOT collected since b336518 removed all location permissions and the background-geolocation plugin (verified: no LOCATION in AndroidManifest, no NSLocation strings, no geolocation plugin in package.json). Vehicle positions on the dispatch map come from Samsara telematics hardware in the truck, never from this app. If location is ever re-added, flip this AND re-add the PreciseLocation dict in ios/App/App/PrivacyInfo.xcprivacy."
     },
     {
       "type": "User IDs (account-level)",
