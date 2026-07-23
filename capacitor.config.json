@@ -1,6 +1,6 @@
 {
   "appId": "com.orestexpress.driver",
-  "appName": "Orest Driver",
+  "appName": "Route Relay Driver",
   "webDir": "web",
   "bundledWebRuntime": false,
   "server": {

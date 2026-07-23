@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Orest Driver</string>
-    <string name="title_activity_main">Orest Driver</string>
+    <string name="app_name">Route Relay Driver</string>
+    <string name="title_activity_main">Route Relay Driver</string>
     <string name="package_name">com.orestexpress.driver</string>
     <string name="custom_url_scheme">com.orestexpress.driver</string>
 </resources>
