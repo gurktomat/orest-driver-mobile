@@ -251,10 +251,18 @@ workflows:
         # Service account JSON uploaded to Codemagic as Secret
         # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS in the `signing` group.
         # SA email: codemagic-play-publisher@orest-driver-publishing.iam.gserviceaccount.com
-        # Granted in Play Console → API access → Driver app:
+        # ⚠ 2026-07-23: this SA is NOT actually granted access yet — Play Console
+        # → Users and permissions shows 1 user / 0 permission groups, so every
+        # upload fails "The caller does not have permission". The lines below
+        # describe the INTENDED grant; someone with account access must invite
+        # the SA and give it:
         #   - Release apps to testing tracks
         #   - Manage testing tracks and edit tester lists
         # Track values: internal | alpha (closed) | beta (open) | production.
+        # ⚠ Must be `alpha`, NOT `internal`: Play's production-access gate for
+        # personal accounts requires a CLOSED test (>=12 testers opted in for 14
+        # continuous days). Internal-track releases do not count toward it, so
+        # publishing to `internal` could never start that clock.
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal
+        track: alpha
         in_app_update_priority: 0
