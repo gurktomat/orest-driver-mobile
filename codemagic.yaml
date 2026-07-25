@@ -175,6 +175,24 @@ workflows:
             echo "publish_status=ok"
             exit 0
           fi
+          # "Internal Testers" IS an internal group, and Apple refuses to attach
+          # a build to one:
+          #   Failed to add a build '<uuid>' ... Cannot add internal group to a build.
+          # The refusal is benign — internal groups receive every build
+          # automatically — but it exits 1 and fails a build that uploaded
+          # perfectly. orest-express-mobile hit exactly this.
+          #
+          # Proof the upload worked is the UUID in the refusal itself: Apple
+          # only issues a build id for a build it has already stored. Accept
+          # that or an explicit "Added build" line (the external group); a
+          # failed UPLOAD produces neither, so a real failure still fails.
+          if grep -qiE 'cannot add internal group to a build|builds cannot be assigned to this internal group' "$LOG" \
+             && grep -qiE "added build .+ to .+ beta group|failed to add a build '[0-9a-fA-F-]{36}'" "$LOG"; then
+            echo "publish_status=ok_internal_group_rejected"
+            echo "Build uploaded to App Store Connect."
+            echo "Apple refused the internal beta group; internal testers receive every build automatically."
+            exit 0
+          fi
           if grep -qiE 'another build is in review|same train is already in beta review|already in beta review|currently in (beta )?review|previous version is in review|build already exists|same version' "$LOG"; then
             echo "publish_status=uploaded_external_review_deferred"
             echo "Build uploaded to App Store Connect and is on TestFlight Internal."
