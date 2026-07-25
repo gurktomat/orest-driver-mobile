@@ -27,6 +27,10 @@ const VIEWPORTS = {
   // Apple App Store — exact pixel sizes per size class
   'iphone-69': { width: 440, height: 956, deviceScaleFactor: 3, isMobile: true, hasTouch: true, ua: IOS_UA }, // 1320x2868 (6.9")
   'iphone-65': { width: 428, height: 926, deviceScaleFactor: 3, isMobile: true, hasTouch: true, ua: IOS_UA }, // 1284x2778 (6.5")
+  // Apple REQUIRES an iPad Pro 12.9" shot whenever the build declares iPad
+  // support (TARGETED_DEVICE_FAMILY includes 2), else review submission 409s
+  // with STATE_ERROR.SCREENSHOT_REQUIRED.APP_IPAD_PRO_3GEN_129.
+  'ipad-129': { width: 1024, height: 1366, deviceScaleFactor: 2, isMobile: true, hasTouch: true, ua: IOS_UA }, // 2048x2732
 };
 
 const PAGES = [
@@ -68,6 +72,22 @@ async function captureFor(viewportName, viewport) {
     userAgent: viewport.ua,
     colorScheme: 'dark',
   });
+  // Suppress the PWA-install and push-permission prompts. Store screenshots must
+  // not reference other install methods (Apple rejects that), and both banners
+  // still render the pre-rebrand name. The notification prompt's key is suffixed
+  // with the driver id, so intercept by prefix rather than seeding a fixed key.
+  await context.addInitScript(() => {
+    const origGet = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (k) {
+      if (typeof k === 'string' &&
+          (k === 'driver-pwa-banner-dismissed' ||
+           k.startsWith('driver-notif-prompt-dismissed:'))) {
+        return '1';
+      }
+      return origGet.call(this, k);
+    };
+  });
+
   const page = await context.newPage();
   let loggedIn = false;
 
@@ -91,7 +111,9 @@ async function captureFor(viewportName, viewport) {
 }
 
 (async () => {
+  const only = process.env.ONLY_VIEWPORT;
   for (const [name, vp] of Object.entries(VIEWPORTS)) {
+    if (only && name !== only) continue;
     try {
       await captureFor(name, vp);
     } catch (err) {
