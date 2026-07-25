@@ -1,8 +1,12 @@
 """Regenerate the Route Relay Driver app icon from the Driver Portal ("Driver Browser") artwork.
 
 Master art: tms-frontend-next/public/driver-login-logo.png (1024x1024 RGBA) — the same
-R-swoosh + map-pin + "Driver App" mark the driver portal serves as its browser/PWA icon,
-at the highest resolution available on this host.
+R-swoosh + map-pin mark the driver portal serves as its browser/PWA icon, at the highest
+resolution available on this host. The "Driver App" / "TMS Orest Express" wordmark is
+STRIPPED (_strip_wordmark): illegible at icon size, and the second line is stale branding.
+
+Also emits the iOS 18 dark-appearance icon (transparent, ring flipped to white) and the
+Android 13+ themed-icon monochrome layer (declared in mipmap-anydpi-v26/*.xml).
 
 Framing matches the icons being replaced so visual weight is unchanged:
   iOS AppIcon / Android legacy -> content 0.93 of canvas width, opaque white
@@ -17,7 +21,10 @@ transparent — the launcher then draws a small white square instead of a full-b
                                           # TMS checkout isn't beside this repo
 """
 from pathlib import Path
+
+import numpy as np
 from PIL import Image, ImageChops, ImageDraw
+from scipy import ndimage
 
 DRIVER = Path(__file__).resolve().parent.parent
 MASTER = DRIVER.parent / "app/orest_tms_full/tms-frontend-next/public/driver-login-logo.png"
@@ -46,7 +53,80 @@ def _trim(im):
     return im.crop(box)
 
 
-ART = _trim(Image.open(MASTER).convert("RGBA"))
+def _strip_wordmark(im):
+    """Remove the "Driver App" / "TMS Orest Express" text, keeping only the mark.
+
+    At home-screen size the two text lines are illegible, and the second one is
+    stale branding ("TMS Orest Express" predates the Route Relay rename). The
+    mark — swoosh ellipse + R + map-pin — is one large connected blob at the
+    top of the canvas; every text glyph is a small separate component in the
+    bottom band. So: connected-component label the ink, keep the biggest blob
+    and anything in the upper half, drop small components whose centroid sits
+    in the bottom band.
+
+    Belt-and-braces: if the swoosh's lower arc happens to touch a glyph (which
+    would merge it into the big blob), a per-pixel pass also clears *achromatic*
+    ink in the bottom band — the black wordmark — without touching the orange
+    arc. The pin's black ring is achromatic too, but lives in the top half.
+    """
+    rgba = np.asarray(im).astype(np.float32)
+    h, w = rgba.shape[:2]
+    ink = rgba[..., 3] > 16
+    total_ink = ink.sum()
+
+    # Colour gates are judged on the ON-WHITE COMPOSITE, not the stored
+    # straight-alpha values: a dark noise pixel at low alpha looks beige once
+    # composited but keeps high chroma in master space, so master-space
+    # thresholds let it through (28px beige speck, first attempt).
+    a = rgba[..., 3:4] / 255.0
+    comp = rgba[..., :3] * a + 255.0 * (1.0 - a)
+
+    # (1) "Driver App" is BLACK and the glow-master's noise is grey/bluish;
+    # everything the mark paints below the midline is strongly orange
+    # (r >> b). So in the bottom band, keep only clearly-orange ink. The
+    # y-gate protects the pin's black ring, which lives in the top half.
+    chroma = comp.max(axis=2) - comp.min(axis=2)
+    ys = np.arange(h)[:, None]
+    # Hue is only meaningful where the pixel is substantially opaque — at low
+    # alpha the arc's own orange AA composites to near-white and a comp-space
+    # hue test would eat it. Solid non-orange ink is text/noise for sure.
+    solid_not_orange = (rgba[..., 3] > 128) & ((rgba[..., 0] - rgba[..., 2]) < 50)
+    black_text = (rgba[..., 3] > 0) & ((chroma < 40) | solid_not_orange) & (ys > 0.50 * h)
+    rgba[black_text, 3] = 0
+    removed = black_text
+
+    # (2) "TMS Orest Express" is ORANGE — colour can't separate it from the
+    # mark, but geometry can: each glyph is a small component whose entire
+    # bbox sits in the bottom band. The lower swoosh arc and the R's leg
+    # strokes start far higher, so a whole-bbox test cannot claim them, and
+    # the area cap is belt-and-braces on top.
+    ink2 = rgba[..., 3] > 16
+    labels, n = ndimage.label(ink2)
+    if n:
+        drop = np.zeros(n + 1, dtype=bool)
+        for i, sl in enumerate(ndimage.find_objects(labels), start=1):
+            if sl is None:
+                continue
+            area = (labels[sl] == i).sum()
+            if sl[0].start > 0.75 * h and area < 0.05 * total_ink:
+                drop[i] = True
+        rgba[drop[labels], 3] = 0
+        removed = removed | drop[labels]
+
+    # (3) Ghost cleanup. The passes above gate on alpha, so each glyph leaves
+    # its anti-aliased fringe (alpha 1..16) behind — invisible at full alpha
+    # but a legible ghost of the whole wordmark once contrast-stretched.
+    # Dilate the removed region and clear any faint ink inside it; the mark's
+    # own edges only lose fringe where they sit within 3px of removed text,
+    # which nothing does.
+    fringe = ndimage.binary_dilation(removed, iterations=3) & \
+        (rgba[..., 3] > 0) & (rgba[..., 3] < 48)
+    rgba[fringe, 3] = 0
+
+    return _trim(Image.fromarray(rgba.astype(np.uint8), "RGBA"))
+
+
+ART = _strip_wordmark(_trim(Image.open(MASTER).convert("RGBA")))
 
 
 def compose(size, width_ratio, *, opaque=True, circle=False):
@@ -87,15 +167,43 @@ save(compose(1024, 0.93), DRIVER / "resources/icon.png")
 save(compose(1024, 0.93), DRIVER / "resources/icon-only.png")
 save(compose(1024, FG_RATIO, opaque=False), DRIVER / "resources/icon-foreground.png")
 
-# --- iOS: single 1024 universal slot declared in Contents.json ----------------
+# --- iOS: light + dark 1024 universal slots declared in Contents.json ---------
 save(compose(1024, 0.93),
      DRIVER / "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png")
 
-# --- Android: legacy launcher + round + adaptive foreground, per density ------
+
+def _recolor_achromatic(img, to):
+    """Repaint low-chroma ink (the pin's black ring) without touching the orange."""
+    a = np.asarray(img.convert("RGBA")).astype(np.float32)
+    rgb = a[..., :3]
+    grey = ((rgb.max(axis=2) - rgb.min(axis=2)) < 36) & (a[..., 3] > 16)
+    a[grey, :3] = to
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
+# Dark appearance (iOS 18): transparent background — Apple supplies the dark
+# backdrop — with the black ring flipped to white so it stays visible.
+save(_recolor_achromatic(compose(1024, 0.93, opaque=False), 255),
+     DRIVER / "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark-1024.png")
+
+
+def _monochrome(img):
+    """Android 13+ themed icon: the mark's alpha silhouette, filled white.
+    The launcher supplies the tint; only the alpha shape matters."""
+    a = np.asarray(img.convert("RGBA"))
+    out = np.zeros_like(a)
+    out[..., :3] = 255
+    out[..., 3] = a[..., 3]
+    return Image.fromarray(out, "RGBA")
+
+
+# --- Android: legacy launcher + round + adaptive fg + themed mono, per density -
 for name, px in DENSITIES.items():
     save(compose(px, 0.93), RES / f"mipmap-{name}/ic_launcher.png")
     save(compose(px, 0.93, circle=True), RES / f"mipmap-{name}/ic_launcher_round.png")
     save(compose(px, FG_RATIO), RES / f"mipmap-{name}/ic_launcher_foreground.png")
+    save(_monochrome(compose(px, FG_RATIO, opaque=False)),
+         RES / f"mipmap-{name}/ic_launcher_monochrome.png")
 
 # --- Play Store listing icon (must match the launcher icon) -------------------
 save(compose(512, 0.93), DRIVER / "play-store-assets/icon-512.png")
