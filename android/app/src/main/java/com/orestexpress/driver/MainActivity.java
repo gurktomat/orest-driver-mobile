@@ -24,6 +24,10 @@ import com.getcapacitor.BridgeActivity;
  *   orest_driver_urgent  — urgent.mp3 (3 rapid beeps)
  *                          Used for pickup reminders / time-sensitive alerts.
  *   orest_driver_default — system default sound (legacy fallback).
+ *
+ * Plus one channel per user-selectable tone (orest_driver_<tone>) — see
+ * the picker in DriverNotificationsCard; aurora.wav ships as WAV (raw/
+ * accepts both formats).
  */
 public class MainActivity extends BridgeActivity {
     @Override
@@ -74,6 +78,11 @@ public class MainActivity extends BridgeActivity {
         // "Notification sound" picker. Same vibration pattern across
         // all of them; only the sound differs.
         long[] vibe = new long[]{0, 250, 150, 250};
+        nm.createNotificationChannel(buildChannel(
+            "orest_driver_aurora", "Aurora tone",
+            "Warm two-note bell tone",
+            vibe, Uri.parse("android.resource://" + pkg + "/raw/aurora"), audio
+        ));
         nm.createNotificationChannel(buildChannel(
             "orest_driver_bell", "Bell tone",
             "Bell-like notification tone",

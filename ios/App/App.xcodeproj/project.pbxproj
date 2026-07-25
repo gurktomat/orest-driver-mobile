@@ -24,6 +24,7 @@
 		2703B59D0E8CA3BC68B4363B /* glass.wav in Resources */ = {isa = PBXBuildFile; fileRef = D67FABD9CFEE94980B88C6BE /* glass.wav */; };
 		E96B6E656BF93A67329350C4 /* pulse.wav in Resources */ = {isa = PBXBuildFile; fileRef = A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */; };
 		95BB1B2E02D4674450886A25 /* classic.wav in Resources */ = {isa = PBXBuildFile; fileRef = C78A0E4E3DFDC18A03BCCD6B /* classic.wav */; };
+		59B07A6517BDCB954D34E1FC /* aurora.wav in Resources */ = {isa = PBXBuildFile; fileRef = 162080D6664281BB1430E493 /* aurora.wav */; };
 		1E20915C08CA77D3355BDB1D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4397C4A772119BEF4DDF16A9 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -47,6 +48,7 @@
 		D67FABD9CFEE94980B88C6BE /* glass.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = glass.wav; sourceTree = "<group>"; };
 		A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pulse.wav; sourceTree = "<group>"; };
 		C78A0E4E3DFDC18A03BCCD6B /* classic.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = classic.wav; sourceTree = "<group>"; };
+		162080D6664281BB1430E493 /* aurora.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = aurora.wav; sourceTree = "<group>"; };
 		4397C4A772119BEF4DDF16A9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -102,6 +104,7 @@
 				D67FABD9CFEE94980B88C6BE /* glass.wav */,
 				A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */,
 				C78A0E4E3DFDC18A03BCCD6B /* classic.wav */,
+				162080D6664281BB1430E493 /* aurora.wav */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -196,6 +199,7 @@
 				2703B59D0E8CA3BC68B4363B /* glass.wav in Resources */,
 				E96B6E656BF93A67329350C4 /* pulse.wav in Resources */,
 				95BB1B2E02D4674450886A25 /* classic.wav in Resources */,
+				59B07A6517BDCB954D34E1FC /* aurora.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
