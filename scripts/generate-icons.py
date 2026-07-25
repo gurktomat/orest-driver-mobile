@@ -208,6 +208,25 @@ for name, px in DENSITIES.items():
 # --- Play Store listing icon (must match the launcher icon) -------------------
 save(compose(512, 0.93), DRIVER / "play-store-assets/icon-512.png")
 
+# --- Driver portal PWA defaults (only when the TMS checkout is beside us) ------
+# These are the FALLBACK files behind /settings-assets/favicons/* — a tenant
+# upload overrides them, so pushing new defaults is not enough for a branded
+# tenant: re-upload through store_favicon_asset as well (it also bumps the
+# cache-busting revision the driver layout appends as ?rev=).
+PUBLIC = DRIVER.parent / "app/orest_tms_full/tms-frontend-next/public"
+if PUBLIC.is_dir():
+    # 192/512 serve both purposes ("any" + "maskable") in driver-manifest.json,
+    # so they use the adaptive-safe FG_RATIO framing; favicons and touch icons
+    # are never masked and can run tighter. Touch icons are opaque — iOS paints
+    # transparency black on the home screen.
+    for px in (192, 512):
+        for name in (f"driver-icon-{px}-v2.png", f"driver-icon-{px}.png"):
+            save(compose(px, FG_RATIO, opaque=False), PUBLIC / name)
+    for px in (16, 32, 48):
+        save(compose(px, 0.93, opaque=False), PUBLIC / f"driver-favicon-{px}x{px}.png")
+    save(compose(180, 0.93), PUBLIC / "driver-touch-icon-180.png")
+    save(compose(180, 0.93), PUBLIC / "apple-touch-icon-driver.png")
+
 print(f"artwork crop: {ART.size[0]}x{ART.size[1]} (aspect {ART.width / ART.height:.3f})")
 print(f"{len(written)} files written")
 for line in written:
