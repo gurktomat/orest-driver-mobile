@@ -5,7 +5,7 @@ import FirebaseMessaging
 import UserNotifications
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
 
     var window: UIWindow?
 
@@ -17,7 +17,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             FirebaseApp.configure()
             Messaging.messaging().delegate = self
         }
-        UNUserNotificationCenter.current().delegate = self
+        // Deliberately NOT claiming UNUserNotificationCenter.current().delegate.
+        //
+        // Capacitor owns that slot: CapacitorBridge sets it to its NotificationRouter
+        // when the bridge is built (`ios.handleApplicationNotifications`, default YES
+        // and not overridden in capacitor.config.json), and the router is what forwards
+        // a TAP to @capacitor/push-notifications → `pushNotificationActionPerformed` →
+        // lib/driver/native-push.ts, which navigates the WebView to the push's data.url.
+        //
+        // This delegate used to be assigned here while the class implemented only
+        // `willPresent` and never `didReceive(response:)`. That was survivable purely
+        // by UIKit ordering luck — the bridge is constructed after
+        // didFinishLaunchingWithOptions returns, so Capacitor reclaimed the slot and
+        // taps kept working. Had this ever won the race (a Capacitor upgrade, scene
+        // lifecycle adoption), every notification tap would have been swallowed in
+        // silence: no event to JS, no navigation, the app just opening.
+        //
+        // Foreground presentation is unchanged — the plugin's own willPresent returns
+        // the `presentationOptions` from capacitor.config.json (badge/sound/alert),
+        // exactly what the removed implementation hardcoded, and it additionally emits
+        // `pushNotificationReceived` to JS, which this one never did.
         return true
     }
 
@@ -66,11 +85,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         )
     }
 
-    // MARK: - Show notifications even when app is foregrounded
-
-    func userNotificationCenter(_ center: UNUserNotificationCenter,
-                                willPresent notification: UNNotification,
-                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .list, .sound, .badge])
-    }
 }
