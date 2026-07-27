@@ -213,3 +213,13 @@ JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
 - **Native camera plugin** — `@capacitor/camera` for higher-res BOL/POD
   capture than the WebView camera input.
 ```
+
+## Versioning
+
+- **Human version** (what stores and users see, e.g. `1.1`) lives in THREE places that
+  must stay in lockstep: `MARKETING_VERSION` (×2, Debug+Release) in
+  `ios/App/App.xcodeproj/project.pbxproj` and `versionName` in `android/app/build.gradle`.
+  **Bump it before pushing any user-visible native change** — pushing `main`
+  auto-triggers Codemagic build + publish (TestFlight / Play alpha).
+- **Build number** (`CFBundleVersion` / `versionCode`) is auto-set by CI from Codemagic's
+  `BUILD_NUMBER` — never edit it by hand.
