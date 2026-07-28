@@ -4,5 +4,15 @@
 <dict>
 	<key>aps-environment</key>
 	<string>production</string>
+	<!-- Universal Links + iOS password AutoFill sharing. Backed by
+	     https://orestexpress.online/.well-known/apple-app-site-association
+	     (applinks covers /driver and /driver/*, matching the Android
+	     pathPrefix). Requires the Associated Domains capability to be enabled
+	     on the App ID in the Apple Developer portal, or signing will fail. -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:orestexpress.online</string>
+		<string>webcredentials:orestexpress.online</string>
+	</array>
 </dict>
 </plist>

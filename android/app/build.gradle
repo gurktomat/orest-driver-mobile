@@ -12,7 +12,7 @@ android {
         // Human-facing version - keep in lockstep with MARKETING_VERSION (x2) in
         // ios/App/App.xcodeproj/project.pbxproj, and bump it BEFORE pushing any
         // user-visible native change (a push to main auto-builds and publishes).
-        versionName "1.1"
+        versionName "1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
