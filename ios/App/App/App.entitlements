@@ -4,15 +4,21 @@
 <dict>
 	<key>aps-environment</key>
 	<string>production</string>
-	<!-- Universal Links + iOS password AutoFill sharing. Backed by
-	     https://orestexpress.online/.well-known/apple-app-site-association
-	     (applinks covers /driver and /driver/*, matching the Android
-	     pathPrefix). Requires the Associated Domains capability to be enabled
-	     on the App ID in the Apple Developer portal, or signing will fail. -->
-	<key>com.apple.developer.associated-domains</key>
-	<array>
-		<string>applinks:orestexpress.online</string>
-		<string>webcredentials:orestexpress.online</string>
-	</array>
+	<!-- com.apple.developer.associated-domains (Universal Links + password
+	     AutoFill) was here and is deliberately removed for now.
+
+	     It cannot be signed until the Associated Domains capability is enabled
+	     for App ID F3VNQ39DEK.com.orestexpress.driver in the Apple Developer
+	     portal: without it the fetched provisioning profile does not carry the
+	     entitlement and `xcodebuild archive` fails with exit 65, which is
+	     exactly what happened to builds #29 and #30. 6c902b2 said as much and
+	     was marked NOT PUSHED for that reason; it reached main by accident.
+
+	     Re-land it (the two strings below, as an array under that key) once the
+	     capability is enabled - the association file at
+	     https://orestexpress.online/.well-known/apple-app-site-association is
+	     already served and stays inert until then:
+	       applinks:orestexpress.online
+	       webcredentials:orestexpress.online -->
 </dict>
 </plist>
