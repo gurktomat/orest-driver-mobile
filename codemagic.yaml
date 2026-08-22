@@ -221,7 +221,8 @@ workflows:
     max_build_duration: 60
     environment:
       groups:
-        - signing  # ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_PASSWORD, ANDROID_KEY_ALIAS
+        - signing  # ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_PASSWORD, ANDROID_KEY_ALIAS,
+                   # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (required by the google_play publish below)
       vars:
         BUNDLE_ID: "com.orestexpress.driver"
       node: 22
@@ -284,16 +285,40 @@ workflows:
           success: true
           failure: true
       google_play:
-        # Service account JSON uploaded to Codemagic as Secret
-        # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS in the `signing` group.
         # SA email: codemagic-play-publisher@orest-driver-publishing.iam.gserviceaccount.com
-        # ⚠ 2026-07-23: this SA is NOT actually granted access yet — Play Console
-        # → Users and permissions shows 1 user / 0 permission groups, so every
-        # upload fails "The caller does not have permission". The lines below
-        # describe the INTENDED grant; someone with account access must invite
-        # the SA and give it:
-        #   - Release apps to testing tracks
-        #   - Manage testing tracks and edit tester lists
+        #
+        # 2026-08-22: Play Console access VERIFIED DONE. That SA is listed under
+        # Users and permissions as Active, never expires, holding "Admin (all
+        # permissions)" on Route Relay Driver (com.orestexpress.driver) and on
+        # Route Relay TMS. That covers "Release apps to testing tracks" and
+        # "Manage testing tracks and edit tester lists". The 2026-07-23 note that
+        # used to sit here ("NOT granted yet, 1 user / 0 permission groups") is
+        # stale and was sending readers after a grant that already exists.
+        # "0 permission groups" is a red herring: these permissions are granted
+        # per user, and no permission GROUPS are defined on the account at all.
+        #
+        # ⚠ What actually blocks this workflow is the credential, not the grant.
+        # Builds #19/#20/#21 were rejected pre-flight with "Provided Google Play
+        # service account JSON has invalid format" - no steps run, no APK is
+        # produced.
+        #
+        # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS IS present in the `signing` group
+        # and marked Secret (verified 2026-08-22), so the stored VALUE is
+        # malformed rather than absent. It cannot be inspected - Codemagic masks
+        # secrets - and a secure value cannot be edited in place either: delete
+        # the row and re-add it with the same name, group and Secret flag.
+        #
+        # ⚠ Paste the key file RAW. Do not base64-encode it. The hint on that
+        # settings page ("binaries need to be base64-encoded") applies to the
+        # keystore and .plist entries, NOT to this one - google_play wants plain
+        # JSON, and a base64 blob fails with exactly this "invalid format" error.
+        # No surrounding quotes; include the outer braces; keep the \n escapes
+        # inside "private_key" exactly as the downloaded file has them.
+        #
+        # Key source: GCP Console -> IAM & Admin -> Service Accounts -> project
+        # orest-driver-publishing -> that SA -> Keys -> Add key -> Create new key
+        # -> JSON. orest-express-mobile reads the same variable name from
+        # `signing-tms` and publishes fine, so that is the working reference.
         # Track values: internal | alpha (closed) | beta (open) | production.
         # ⚠ Must be `alpha`, NOT `internal`: Play's production-access gate for
         # personal accounts requires a CLOSED test (>=12 testers opted in for 14
