@@ -6,8 +6,13 @@ import android.media.AudioAttributes;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.webkit.WebView;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.WebViewListener;
 
 /**
  * Orest Driver — Capacitor host activity.
@@ -34,6 +39,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         registerNotificationChannels();
+        startLoadWatchdog();
     }
 
     private void registerNotificationChannels() {
@@ -129,5 +135,117 @@ public class MainActivity extends BridgeActivity {
         ch.setShowBadge(true);
         ch.setSound(sound, audio);
         return ch;
+    }
+
+    // ---- Stalled-load watchdog ----
+    //
+    // `server.errorPath` (offline.html) covers a load that FAILS: Capacitor's
+    // BridgeWebViewClient hands over to the local page from onReceivedError. It
+    // does nothing for a load that merely HANGS - a captive portal, or one bar of
+    // LTE that completes the handshake and then goes quiet. The WebView reports
+    // nothing for as long as that lasts, and paints only `backgroundColor` while
+    // it waits. That is the same black screen, just on a slower fuse.
+    //
+    // So measure the load here. This is a STALL detector, not a deadline: any
+    // forward movement in getProgress() restarts the clock, so a slow but living
+    // connection is left alone for as long as it needs. Only a load that has not
+    // advanced AT ALL for STALLED_LOAD_MS is given up on.
+    //
+    // It guards the FIRST load and disarms permanently once one paints. After
+    // that the user has real content on screen, and replacing it with an error
+    // page would be strictly worse than letting them wait. Every later attempt
+    // belongs to offline.html, which times out its own hop back.
+
+    private static final long STALLED_LOAD_MS = 15_000L;
+    private static final long WATCHDOG_TICK_MS = 1_000L;
+
+    private final Handler watchdogHandler = new Handler(Looper.getMainLooper());
+    private final Runnable watchdogTick = new Runnable() {
+        @Override
+        public void run() {
+            checkForStalledLoad();
+        }
+    };
+    private int watchdogLastProgress = -1;
+    private long watchdogClockStartedAt = 0L;
+    private boolean watchdogFinished = false;
+
+    private void startLoadWatchdog() {
+        if (bridge == null) {
+            return; // setContentView fell back to no_webview; there is nothing to watch
+        }
+        // Any of these means something is on screen - including the error page
+        // Capacitor itself just loaded - so the watchdog has nothing left to do.
+        bridge.addWebViewListener(new WebViewListener() {
+            @Override
+            public void onPageCommitVisible(WebView view, String url) {
+                stopLoadWatchdog();
+            }
+
+            @Override
+            public void onPageLoaded(WebView view) {
+                stopLoadWatchdog();
+            }
+
+            @Override
+            public void onReceivedError(WebView view) {
+                stopLoadWatchdog();
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view) {
+                stopLoadWatchdog();
+            }
+        });
+        watchdogHandler.postDelayed(watchdogTick, WATCHDOG_TICK_MS);
+    }
+
+    private void stopLoadWatchdog() {
+        watchdogFinished = true;
+        watchdogHandler.removeCallbacks(watchdogTick);
+    }
+
+    private void checkForStalledLoad() {
+        if (watchdogFinished) {
+            return;
+        }
+        WebView webView = (bridge != null) ? bridge.getWebView() : null;
+        String errorUrl = (bridge != null) ? bridge.getErrorUrl() : null;
+        if (webView == null || errorUrl == null) {
+            stopLoadWatchdog(); // no WebView, or no errorPath configured to go to
+            return;
+        }
+
+        long now = SystemClock.elapsedRealtime();
+        if (watchdogClockStartedAt == 0L) {
+            watchdogClockStartedAt = now;
+        }
+
+        int progress = webView.getProgress();
+        if (progress > watchdogLastProgress) {
+            watchdogLastProgress = progress;
+            watchdogClockStartedAt = now;
+        }
+        if (progress >= 100) {
+            stopLoadWatchdog();
+            return;
+        }
+
+        if (now - watchdogClockStartedAt < STALLED_LOAD_MS) {
+            watchdogHandler.postDelayed(watchdogTick, WATCHDOG_TICK_MS);
+            return;
+        }
+
+        stopLoadWatchdog();
+        webView.stopLoading();
+        webView.loadUrl(errorUrl);
+    }
+
+    // public, not protected: BridgeActivity already widens it, and narrowing an
+    // override is a compile error.
+    @Override
+    public void onDestroy() {
+        stopLoadWatchdog();
+        super.onDestroy();
     }
 }

@@ -130,6 +130,11 @@
         // a phone left in a dead zone keeps trying without draining the battery.
         var BACKOFF = [3, 5, 8, 13, 21, 30];
         var PROBE_TIMEOUT_MS = 8000;
+        // How long to wait for our own hop back to commit before deciding it
+        // stalled. The native watchdog only guards the very first load, so from
+        // the second attempt on this is the only thing standing between the user
+        // and a screen frozen on "Opening".
+        var NAV_TIMEOUT_MS = 20000;
 
         // Bounce guard. Android also routes main-frame HTTP errors here
         // (BridgeWebViewClient.onReceivedHttpError), so a server that answers but
@@ -256,6 +261,14 @@
         function goToApp() {
           writeStore(NAV_KEY, String(now()));
           setStatus("Connected. Opening Route Relay Driver", true);
+          // If the navigation commits, this document is torn down and the timer
+          // dies with it. Still being here when it fires means the load hung
+          // rather than failed - nothing reports that, so treat it as a failed
+          // attempt, take the screen back and keep trying.
+          window.setTimeout(function () {
+            render(navigator.onLine === false ? "offline" : "unreachable");
+            scheduleNext();
+          }, NAV_TIMEOUT_MS);
           window.location.replace(APP_URL);
         }
 
