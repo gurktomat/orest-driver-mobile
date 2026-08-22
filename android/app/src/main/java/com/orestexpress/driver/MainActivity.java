@@ -15,22 +15,22 @@ import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.WebViewListener;
 
 /**
- * Orest Driver — Capacitor host activity.
+ * Orest Driver - Capacitor host activity.
  *
  * Registers FCM notification channels at app start so the backend can pick
  * the right tone per event type via the channel_id field on each payload.
- * Channel sounds are immutable after first install on the device — the
+ * Channel sounds are immutable after first install on the device - the
  * channel name is what makes them distinct here.
  *
- *   orest_driver_message — message.mp3 (gentle 2-tone chime)
+ *   orest_driver_message - message.mp3 (gentle 2-tone chime)
  *                          Used for new dispatcher messages.
- *   orest_driver_load    — load.mp3 (ascending C-E-G chord)
+ *   orest_driver_load    - load.mp3 (ascending C-E-G chord)
  *                          Used for new load assignments.
- *   orest_driver_urgent  — urgent.mp3 (3 rapid beeps)
+ *   orest_driver_urgent  - urgent.mp3 (3 rapid beeps)
  *                          Used for pickup reminders / time-sensitive alerts.
- *   orest_driver_default — system default sound (legacy fallback).
+ *   orest_driver_default - system default sound (legacy fallback).
  *
- * Plus one channel per user-selectable tone (orest_driver_<tone>) — see
+ * Plus one channel per user-selectable tone (orest_driver_<tone>) - see
  * the picker in DriverNotificationsCard; aurora.wav ships as WAV (raw/
  * accepts both formats).
  */
@@ -80,7 +80,7 @@ public class MainActivity extends BridgeActivity {
             audio
         ));
 
-        // Per-driver tone choice channels — selected via the in-app
+        // Per-driver tone choice channels - selected via the in-app
         // "Notification sound" picker. Same vibration pattern across
         // all of them; only the sound differs.
         long[] vibe = new long[]{0, 250, 150, 250};
@@ -110,7 +110,7 @@ public class MainActivity extends BridgeActivity {
             vibe, Uri.parse("android.resource://" + pkg + "/raw/classic"), audio
         ));
 
-        // Legacy fallback — used when older payloads omit a channel_id.
+        // Legacy fallback - used when older payloads omit a channel_id.
         NotificationChannel def = new NotificationChannel(
             "orest_driver_default", "General",
             NotificationManager.IMPORTANCE_HIGH
@@ -221,8 +221,15 @@ public class MainActivity extends BridgeActivity {
             watchdogClockStartedAt = now;
         }
 
+        // ANY change in progress is evidence of life, in either direction. Counting
+        // only upward movement made this a high-water mark that a SECOND navigation
+        // could never beat (a new navigation restarts progress near 0), freezing the
+        // stall clock at the previous navigation's last tick. The commit/loaded
+        // listeners above already disarm us before that can bite here, but the iOS
+        // shell had no such disarm and this exact hole produced a black screen on
+        // every push-tap deep link. Keep the two shells honest.
         int progress = webView.getProgress();
-        if (progress > watchdogLastProgress) {
+        if (progress != watchdogLastProgress) {
             watchdogLastProgress = progress;
             watchdogClockStartedAt = now;
         }

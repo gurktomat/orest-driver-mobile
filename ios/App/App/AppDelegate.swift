@@ -28,13 +28,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         //
         // This delegate used to be assigned here while the class implemented only
         // `willPresent` and never `didReceive(response:)`. That was survivable purely
-        // by UIKit ordering luck — the bridge is constructed after
+        // by UIKit ordering luck - the bridge is constructed after
         // didFinishLaunchingWithOptions returns, so Capacitor reclaimed the slot and
         // taps kept working. Had this ever won the race (a Capacitor upgrade, scene
         // lifecycle adoption), every notification tap would have been swallowed in
         // silence: no event to JS, no navigation, the app just opening.
         //
-        // Foreground presentation is unchanged — the plugin's own willPresent returns
+        // Foreground presentation is unchanged - the plugin's own willPresent returns
         // the `presentationOptions` from capacitor.config.json (badge/sound/alert),
         // exactly what the removed implementation hardcoded, and it additionally emits
         // `pushNotificationReceived` to JS, which this one never did.
@@ -107,7 +107,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     // page would be strictly worse than letting them wait. Every later attempt
     // belongs to offline.html, which times out its own hop back.
 
-    private static let stalledLoadSeconds: TimeInterval = 15
+    private static let stalledLoadSeconds: TimeInterval = 30
     private static let watchdogGiveUpSeconds: TimeInterval = 120
 
     private var loadWatchdog: Timer?
@@ -158,14 +158,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
 
         if watchdogClockStartedAt == 0 { watchdogClockStartedAt = now }
 
+        // ANY change in estimatedProgress is evidence of life, in either direction.
+        //
+        // It used to only count progress going UP, which made watchdogLastProgress a
+        // high-water mark that could never be beaten again once a SECOND navigation
+        // started mid-boot - and estimatedProgress restarts near 0 for a new
+        // navigation, so it never climbed back above the old mark until the very end.
+        // The stall clock therefore stayed frozen at the previous navigation's last
+        // tick and the fuse burned down while the new page was loading normally.
+        //
+        // A push-tap deep link does exactly this: handlePushTap fires as soon as the
+        // tap listener attaches, mid-boot, and calls window.location.assign(), which
+        // is a full document navigation. Tapping a "Trip off route" alert therefore
+        // reliably produced a black screen and then the offline page, while the same
+        // app cold-started from the icon was fine.
         let progress = webView.estimatedProgress
-        if progress > watchdogLastProgress {
+        if progress != watchdogLastProgress {
             watchdogLastProgress = progress
             watchdogClockStartedAt = now
         }
 
-        // Loaded. The user is looking at the app, so stand down for good.
-        if progress >= 1.0 && !webView.isLoading {
+        // Document loaded: stand down for good. Parity with Android's
+        // `if (progress >= 100) stopLoadWatchdog()`.
+        //
+        // This used to also require `!webView.isLoading`, and that extra condition was
+        // the bug. isLoading stays true while subresources stream, and this app pulls
+        // ~2 MB across 33 chunks after the document lands. Meanwhile the clock above
+        // only restarts on a NEW progress high-water mark, so once estimatedProgress
+        // plateaued at 1.0 the fuse could never be reset: a first load that was working
+        // fine got killed at stalledLoadSeconds and replaced with the offline page.
+        // Reported as a black screen followed by "No internet connection" on Wi-Fi,
+        // while the same network served the same site to Safari without trouble.
+        //
+        // Whatever is still streaming once the document is in is the app's own payload,
+        // not a hang. A genuine hang never advances progress at all, so the stall clock
+        // below still catches it.
+        if progress >= 1.0 {
             stopLoadWatchdog()
             return
         }
