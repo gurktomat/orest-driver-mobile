@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d0f14" />
+    <meta name="color-scheme" content="dark" />
+    <title>Route Relay Driver</title>
+    <style>
+      /*
+        Connection-lost screen for the Route Relay Driver native shell.
+
+        Capacitor loads this file (server.errorPath) whenever the WebView fails to
+        load https://orestexpress.online: no signal, DNS/TLS failure, server down, or the WebView
+        content process dying and failing its reload. Before this existed the
+        shell just painted `backgroundColor` and the driver saw a black screen.
+
+        Everything here is inline on purpose. The one moment this page renders is
+        the one moment no network asset can be fetched, so it must not reference
+        a font, an image or a stylesheet.
+      */
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; height: 100%; }
+      body {
+        background: #0d0f14;
+        color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: calc(24px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right))
+                 calc(24px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left));
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        overflow: hidden;
+      }
+      .card { width: 100%; max-width: 380px; text-align: center; }
+      .badge {
+        width: 76px; height: 76px; margin: 0 auto 22px;
+        border-radius: 22px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(217, 119, 6, .15);
+        color: #d97706;
+        border: 1px solid rgba(217, 119, 6, .30);
+      }
+      .badge svg { width: 38px; height: 38px; display: block; }
+      h1 { font-size: 21px; line-height: 1.3; font-weight: 650; margin: 0 0 10px; letter-spacing: -0.01em; }
+      p.lede { font-size: 15px; line-height: 1.55; color: #9aa3af; margin: 0 0 26px; }
+      button {
+        appearance: none; -webkit-appearance: none;
+        width: 100%; min-height: 54px;
+        border: 0; border-radius: 14px;
+        background: #d97706; color: #0d0f14;
+        font-size: 16px; font-weight: 620; font-family: inherit;
+        cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        transition: opacity .15s ease, transform .1s ease;
+      }
+      button:active { transform: scale(.985); }
+      button[disabled] { opacity: .6; cursor: default; }
+      .status {
+        margin: 16px 0 0;
+        font-size: 13px; line-height: 1.5; color: #6b7280;
+        min-height: 20px;
+      }
+      .dot {
+        display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+        background: #6b7280; margin-right: 7px; vertical-align: middle;
+      }
+      .dot.live { background: #d97706; animation: breathe 1.6s ease-in-out infinite; }
+      .spinner {
+        width: 17px; height: 17px; flex: none;
+        border: 2px solid rgba(13, 15, 20, .30);
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+      }
+      .brand {
+        position: fixed;
+        left: 0; right: 0;
+        bottom: calc(18px + env(safe-area-inset-bottom));
+        text-align: center;
+        font-size: 11px; letter-spacing: .09em; text-transform: uppercase;
+        color: #333a46;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes breathe {
+        0%, 100% { opacity: .35; }
+        50%      { opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .spinner, .dot.live { animation: none; }
+        button:active { transform: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="badge" id="badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h.01" />
+          <path d="M8.5 16.43a5 5 0 0 1 7 0" />
+          <path d="M5 12.86a10 10 0 0 1 5.17-2.69" />
+          <path d="M19 12.86a10 10 0 0 0-2.01-1.52" />
+          <path d="M2 8.82a15 15 0 0 1 4.18-2.64" />
+          <path d="M22 8.82a15 15 0 0 0-11.29-3.76" />
+          <path d="m2 2 20 20" />
+        </svg>
+      </div>
+      <h1 id="title">No internet connection</h1>
+      <p class="lede" id="lede">Route Relay Driver needs a connection to show your loads. Reconnecting as soon as you are back online.</p>
+      <button id="retry" type="button">Try again</button>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </main>
+    <div class="brand">Route Relay Driver</div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var APP_URL = "https://orestexpress.online/driver/dashboard";
+        var ORIGIN = "https://orestexpress.online";
+        var HEALTH_URL = ORIGIN + "/api/v1/health";
+        var ASSET_URL = ORIGIN + "/favicon.ico";
+
+        // Seconds between automatic attempts. The last value repeats forever, so
+        // a phone left in a dead zone keeps trying without draining the battery.
+        var BACKOFF = [3, 5, 8, 13, 21, 30];
+        var PROBE_TIMEOUT_MS = 8000;
+
+        // Bounce guard. Android also routes main-frame HTTP errors here
+        // (BridgeWebViewClient.onReceivedHttpError), so a server that answers but
+        // cannot render would ping-pong between the site and this page forever.
+        // Coming back within this window counts as a bounce; after MAX_BOUNCES we
+        // stop navigating on our own and wait for a deliberate tap.
+        var BOUNCE_WINDOW_MS = 25000;
+        var MAX_BOUNCES = 3;
+        var NAV_KEY = "rr-offline-nav-at";
+        var BOUNCE_KEY = "rr-offline-bounces";
+
+        var elTitle = document.getElementById("title");
+        var elLede = document.getElementById("lede");
+        var elStatus = document.getElementById("status");
+        var elRetry = document.getElementById("retry");
+
+        var attempt = 0;
+        var checking = false;
+        var stalled = false; // bounce guard tripped: manual retry only
+        var countdownTo = 0;
+        var tickTimer = null;
+
+        // sessionStorage is the natural home for this, but a custom scheme origin
+        // can refuse storage entirely. Fall back to localStorage, then to nothing -
+        // without it we simply lose bounce protection, never correctness.
+        function readStore(key) {
+          try { var v = window.sessionStorage.getItem(key); if (v !== null) return v; } catch (e) {}
+          try { return window.localStorage.getItem(key); } catch (e) {}
+          return null;
+        }
+        function writeStore(key, value) {
+          try { window.sessionStorage.setItem(key, value); return; } catch (e) {}
+          try { window.localStorage.setItem(key, value); } catch (e) {}
+        }
+        function dropStore(key) {
+          try { window.sessionStorage.removeItem(key); } catch (e) {}
+          try { window.localStorage.removeItem(key); } catch (e) {}
+        }
+
+        function now() { return new Date().getTime(); }
+
+        function accountForBounce() {
+          var navAt = parseInt(readStore(NAV_KEY) || "0", 10);
+          dropStore(NAV_KEY);
+          var bounces = 0;
+          if (navAt && now() - navAt < BOUNCE_WINDOW_MS) {
+            bounces = parseInt(readStore(BOUNCE_KEY) || "0", 10) + 1;
+          }
+          writeStore(BOUNCE_KEY, String(bounces));
+          return bounces;
+        }
+
+        function render(mode) {
+          if (mode === "stalled") {
+            elTitle.textContent = "Route Relay Driver is not loading";
+            elLede.textContent =
+              "The server is answering but the app will not open. This is usually over in a "
+              + "couple of minutes. Tap Try again, or contact dispatch if it keeps happening.";
+          } else if (mode === "unreachable") {
+            elTitle.textContent = "Cannot reach Route Relay Driver";
+            elLede.textContent =
+              "Your device is online but the server is not responding. Still trying.";
+          } else {
+            elTitle.textContent = "No internet connection";
+            elLede.textContent =
+              "Route Relay Driver needs a connection to show your loads. Reconnecting as soon as "
+              + "you are back online.";
+          }
+        }
+
+        function setStatus(text, live) {
+          if (!text) { elStatus.innerHTML = ""; return; }
+          elStatus.innerHTML =
+            '<span class="dot' + (live ? " live" : "") + '"></span>' + text;
+        }
+
+        function setChecking(on) {
+          checking = on;
+          elRetry.disabled = on;
+          elRetry.innerHTML = on
+            ? '<span class="spinner"></span>Checking'
+            : "Try again";
+        }
+
+        // Two probes, because they fail apart. /api/v1/health is CORS-allowed for
+        // this origin (main.py allows capacitor://localhost and https://localhost)
+        // and proves the API is alive. The favicon comes off the frontend
+        // container, so it is the only thing here that proves the app itself can
+        // render - and it needs no CORS at all, being an <img>. Requiring both is
+        // what keeps us from navigating into a 502 and bouncing straight back.
+        function probeApi() {
+          return new Promise(function (resolve) {
+            var done = false;
+            var finish = function (ok) { if (!done) { done = true; resolve(ok); } };
+            var timer = setTimeout(function () { finish(false); }, PROBE_TIMEOUT_MS);
+            try {
+              fetch(HEALTH_URL + "?_=" + now(), { cache: "no-store", credentials: "omit" })
+                .then(function (res) { clearTimeout(timer); finish(res && res.ok); })
+                .catch(function () { clearTimeout(timer); finish(false); });
+            } catch (e) {
+              clearTimeout(timer);
+              finish(false);
+            }
+          });
+        }
+
+        function probeAsset() {
+          return new Promise(function (resolve) {
+            var done = false;
+            var img = new Image();
+            var finish = function (ok) {
+              if (done) return;
+              done = true;
+              img.onload = img.onerror = null;
+              resolve(ok);
+            };
+            var timer = setTimeout(function () { finish(false); }, PROBE_TIMEOUT_MS);
+            img.onload = function () { clearTimeout(timer); finish(true); };
+            img.onerror = function () { clearTimeout(timer); finish(false); };
+            img.src = ASSET_URL + "?_=" + now();
+          });
+        }
+
+        function goToApp() {
+          writeStore(NAV_KEY, String(now()));
+          setStatus("Connected. Opening Route Relay Driver", true);
+          window.location.replace(APP_URL);
+        }
+
+        function stopCountdown() {
+          if (tickTimer) { clearInterval(tickTimer); tickTimer = null; }
+          countdownTo = 0;
+        }
+
+        function scheduleNext() {
+          // stopCountdown() clears countdownTo, so it has to run BEFORE the new
+          // deadline is set. The other order leaves countdownTo at 0, tick() reads
+          // that as "already due" and the backoff collapses into a tight loop.
+          stopCountdown();
+          if (stalled) { setStatus("Waiting for you to try again", false); return; }
+          var wait = BACKOFF[Math.min(attempt, BACKOFF.length - 1)];
+          attempt += 1;
+          countdownTo = now() + wait * 1000;
+          tick();
+          tickTimer = setInterval(tick, 1000);
+        }
+
+        function tick() {
+          var left = Math.ceil((countdownTo - now()) / 1000);
+          if (left <= 0) { stopCountdown(); check("timer"); return; }
+          setStatus("Trying again in " + left + "s", false);
+        }
+
+        function check(reason) {
+          if (checking) return;
+          stopCountdown();
+          setChecking(true);
+          setStatus("Checking the connection", true);
+
+          Promise.all([probeApi(), probeAsset()]).then(function (results) {
+            setChecking(false);
+            if (results[0] && results[1]) {
+              // Deliberately NOT resetting BOUNCE_KEY here. This page cannot see
+              // whether the app then rendered, so an automatic hop must leave the
+              // tally standing; accountForBounce() clears it once we stay away
+              // longer than BOUNCE_WINDOW_MS, which is the real success signal.
+              goToApp();
+              return;
+            }
+            // navigator.onLine is only a hint (WKWebView often reports true with no
+            // radio), so it decides the wording, never whether we retry.
+            var offline = navigator.onLine === false || (!results[0] && !results[1]);
+            render(offline ? "offline" : "unreachable");
+            if (reason === "manual") { attempt = 0; }
+            scheduleNext();
+          });
+        }
+
+        elRetry.addEventListener("click", function () {
+          stalled = false;
+          attempt = 0;
+          writeStore(BOUNCE_KEY, "0");
+          render(navigator.onLine === false ? "offline" : "unreachable");
+          check("manual");
+        });
+
+        // The radio coming back is the strongest signal there is - do not sit on a
+        // 30 second timer when the OS has already told us.
+        window.addEventListener("online", function () {
+          if (stalled) return;
+          attempt = 0;
+          check("online");
+        });
+        window.addEventListener("offline", function () {
+          stopCountdown();
+          render("offline");
+          scheduleNext();
+        });
+
+        // Reopening the app from the background is the other moment worth probing:
+        // the phone has usually found signal again while it was away.
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState === "visible" && !stalled && !checking) {
+            attempt = 0;
+            check("foreground");
+          }
+        });
+
+        var bounces = accountForBounce();
+        if (bounces >= MAX_BOUNCES) {
+          stalled = true;
+          render("stalled");
+          setStatus("Waiting for you to try again", false);
+        } else {
+          render(navigator.onLine === false ? "offline" : "unreachable");
+          // A bounce means the site answered a moment ago, so wait out the backoff
+          // instead of hammering it. A cold start with no signal probes immediately.
+          if (bounces > 0) { attempt = bounces; scheduleNext(); } else { check("boot"); }
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -5,6 +5,7 @@
   "bundledWebRuntime": false,
   "server": {
     "url": "https://orestexpress.online/driver/dashboard",
+    "errorPath": "offline.html",
     "cleartext": false,
     "androidScheme": "https",
     "allowNavigation": [
