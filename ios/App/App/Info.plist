@@ -62,6 +62,8 @@
 	<string>Used for voice notes attached to shipment messages.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Used to unlock the driver app without re-typing your password.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Used to find priced fuel stations near you. Without it the app centres on your truck's last known position.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<!-- Required for Service Workers in WKWebView (offline app shell). Keep in
