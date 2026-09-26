@@ -20,7 +20,7 @@ workflows:
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.orestexpress.driver"
       node: 22
-      xcode: latest
+      xcode: "26.4"  # pinned 2026-09-26: `latest` will move to Xcode 27, whose iOS SDK requires the UIScene lifecycle this app has not adopted yet (launch crash). Unpin after the Capacitor 8.5 UIScene migration.
     # MANUAL ONLY — no `triggering:` block on purpose.
     #
     # An ad-hoc IPA needs a UDID-registered device, so building one on every
@@ -108,7 +108,7 @@ workflows:
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.orestexpress.driver"
       node: 22
-      xcode: latest
+      xcode: "26.4"  # pinned 2026-09-26: `latest` will move to Xcode 27, whose iOS SDK requires the UIScene lifecycle this app has not adopted yet (launch crash). Unpin after the Capacitor 8.5 UIScene migration.
     # Auto-release to TestFlight on every push to main. Previously this workflow
     # had no trigger, so a push built only the ad-hoc IPA above — which needs a
     # UDID-registered device and therefore never reached a tester.
