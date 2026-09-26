@@ -132,6 +132,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         loadWatchdog = timer
     }
 
+    /// The Capacitor bridge controller. Under the UIScene lifecycle (Capacitor 8.5) the window
+    /// belongs to SceneDelegate and this delegate's `window` stays nil, so look through the
+    /// connected window scenes as well; the old lifecycle is still covered by `window`.
+    private var bridgeViewController: CAPBridgeViewController? {
+        if let controller = window?.rootViewController as? CAPBridgeViewController {
+            return controller
+        }
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for sceneWindow in windowScene.windows {
+                if let controller = sceneWindow.rootViewController as? CAPBridgeViewController {
+                    return controller
+                }
+            }
+        }
+        return nil
+    }
+
     private func stopLoadWatchdog() {
         watchdogFinished = true
         loadWatchdog?.invalidate()
@@ -146,7 +164,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         // The bridge is built after didFinishLaunchingWithOptions returns, so the
         // first tick or two legitimately find nothing. Keep waiting - and do not
         // start the stall clock until there is actually a load to measure.
-        guard let controller = window?.rootViewController as? CAPBridgeViewController,
+        guard let controller = bridgeViewController,
               let webView = controller.webView else {
             if now - watchdogArmedAt >= AppDelegate.watchdogGiveUpSeconds { stopLoadWatchdog() }
             return
@@ -205,4 +223,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         webView.load(URLRequest(url: errorURL))
     }
 
+    func application(_ application: UIApplication,
+                     configurationForConnecting connectingSceneSession: UISceneSession,
+                     options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let config = UISceneConfiguration(name: "Default Configuration",
+                                          sessionRole: connectingSceneSession.role)
+        config.delegateClass = SceneDelegate.self
+        return config
+    }
 }

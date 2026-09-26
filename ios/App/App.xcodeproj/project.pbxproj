@@ -26,6 +26,7 @@
 		95BB1B2E02D4674450886A25 /* classic.wav in Resources */ = {isa = PBXBuildFile; fileRef = C78A0E4E3DFDC18A03BCCD6B /* classic.wav */; };
 		59B07A6517BDCB954D34E1FC /* aurora.wav in Resources */ = {isa = PBXBuildFile; fileRef = 162080D6664281BB1430E493 /* aurora.wav */; };
 		1E20915C08CA77D3355BDB1D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4397C4A772119BEF4DDF16A9 /* PrivacyInfo.xcprivacy */; };
+		C65278E5F6654D11AC0DC5D0 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF2B34004044F2D8B383718 /* SceneDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 		C78A0E4E3DFDC18A03BCCD6B /* classic.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = classic.wav; sourceTree = "<group>"; };
 		162080D6664281BB1430E493 /* aurora.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = aurora.wav; sourceTree = "<group>"; };
 		4397C4A772119BEF4DDF16A9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		6CF2B34004044F2D8B383718 /* SceneDelegate.swift */ = {isa = PBXFileReference; name = "SceneDelegate.swift"; path = "SceneDelegate.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +107,7 @@
 				A5DDDAE558E1FE23AC2AFE84 /* pulse.wav */,
 				C78A0E4E3DFDC18A03BCCD6B /* classic.wav */,
 				162080D6664281BB1430E493 /* aurora.wav */,
+				6CF2B34004044F2D8B383718 /* SceneDelegate.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -147,7 +150,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastSwiftUpdateCheck = 0920;
+				LastSwiftUpdateCheck = 920;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					504EC3031FED79650016851F = {
@@ -211,6 +214,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
+				C65278E5F6654D11AC0DC5D0 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
