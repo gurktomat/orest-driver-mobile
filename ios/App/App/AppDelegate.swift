@@ -206,3 +206,48 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
     }
 
 }
+
+// MARK: - Distribution channel in the user agent
+//
+// The web app (served live from orestexpress.online) has to tell a TestFlight
+// install from an App Store one: drivers still on the beta are told to delete it
+// and install the App Store build, because a TestFlight build expires after 90
+// days and the App Store will not update over it. JS cannot read the receipt, so
+// the shell states it once, as a user-agent token: `RRDist/appstore`,
+// `RRDist/testflight` or `RRDist/dev`. A UA token rather than a plugin because it
+// also lands in the server's access log, which is how installs get counted.
+//
+// Shells before 1.5 send no token at all; the web treats that as "unknown".
+enum DistributionChannel {
+    static let current: String = {
+        #if DEBUG
+        return "dev"
+        #else
+        // Ad-hoc and development signing embed their provisioning profile;
+        // App Store and TestFlight builds never do.
+        if Bundle.main.path(forResource: "embedded", ofType: "mobileprovision") != nil {
+            return "dev"
+        }
+        // A TestFlight install carries a sandbox receipt, the App Store a real one.
+        if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" {
+            return "testflight"
+        }
+        return "appstore"
+        #endif
+    }()
+}
+
+// Main.storyboard instantiates this instead of CAPBridgeViewController. It is
+// still a CAPBridgeViewController, so the load watchdog's cast above holds.
+class DriverBridgeViewController: CAPBridgeViewController {
+    override func instanceDescriptor() -> InstanceDescriptor {
+        let descriptor = super.instanceDescriptor()
+        let token = "RRDist/\(DistributionChannel.current)"
+        if let existing = descriptor.appendedUserAgentString, !existing.isEmpty {
+            descriptor.appendedUserAgentString = "\(existing) \(token)"
+        } else {
+            descriptor.appendedUserAgentString = token
+        }
+        return descriptor
+    }
+}
