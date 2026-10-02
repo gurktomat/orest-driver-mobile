@@ -113,10 +113,12 @@ workflows:
     # had no trigger, so a push built only the ad-hoc IPA above — which needs a
     # UDID-registered device and therefore never reached a tester.
     #
-    # ⚠ This app publishes to "Drivers (External)" as well as "Internal
-    # Testers", so a push to main now submits a build for external distribution
-    # to real drivers (via Apple's beta review). Land driver-facing changes on
-    # main only when they are meant to go out.
+    # Since 1.5 (2026-10-02) TestFlight is for "Internal Testers" only. Drivers
+    # install from the App Store (Route Relay Driver, id6764219438), and the web
+    # app tells anyone still on a TestFlight build to delete it and install the
+    # store version, so builds are no longer attached to "Drivers (External)".
+    # Shipping to drivers = submit the uploaded build for App Store review in
+    # App Store Connect, then raise the iOS minimum in Settings > Mobile apps.
     triggering:
       events:
         - push
@@ -170,8 +172,7 @@ workflows:
           if app-store-connect publish \
               --path "build/ios/ipa/App.ipa" \
               --testflight \
-              --beta-group "Internal Testers" \
-              --beta-group "Drivers (External)" 2>&1 | tee "$LOG"; then
+              --beta-group "Internal Testers" 2>&1 | tee "$LOG"; then
             echo "publish_status=ok"
             exit 0
           fi
