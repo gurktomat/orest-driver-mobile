@@ -65,6 +65,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
             name: .capacitorDidRegisterForRemoteNotifications,
             object: deviceToken
         )
+        // Hand the page the FCM token on EVERY register() call, not only when
+        // Firebase first issues or rotates it.
+        //
+        // didReceiveRegistrationToken (below) fires once, early in launch. The
+        // page loads remotely and attaches its `registration` listener later, so
+        // on most launches that event reached nobody, and register() produced
+        // only the APNs token above, which driver/native-push.ts ignores. A phone
+        // whose token never changed therefore never re-registered, and the server
+        // kept the shell version it reported months earlier (2026-10-25..26:
+        // 89 Android driver /fcm/subscribe calls, 1 from iOS). Same fix as
+        // orest-express-mobile a2462d1. Once the APNs token is set,
+        // token(completion:) answers from the cache.
+        Messaging.messaging().token { token, _ in
+            guard let token = token, let tokenData = token.data(using: .utf8) else { return }
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: .capacitorDidRegisterForRemoteNotifications,
+                    object: tokenData
+                )
+            }
+        }
     }
 
     func application(_ application: UIApplication,
