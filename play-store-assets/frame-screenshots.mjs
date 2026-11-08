@@ -39,10 +39,10 @@ const CAPTIONS = {
   },
   driver: {
     '1-dashboard': ['Your load and stops,', 'front and center'],
-    '2-loads': ['Every trip you run,', 'in one list'],
-    '3-documents': ['Snap and send', 'your paperwork'],
-    '4-messages': ['Message dispatch', 'in real time'],
-    '5-fuel': ['Fuel card purchases', 'at a glance'],
+    '2-load': ['Every stop,', 'step by step'],
+    '3-messages': ['Message dispatch', 'in real time'],
+    '4-fuel': ['Fuel stops', 'and what you saved'],
+    '5-profile': ['Your truck, trailer', 'and requests'],
   },
 };
 const APP_NAME = { tms: 'ROUTE RELAY TMS', dock: 'ROUTE RELAY DOCK', driver: 'ROUTE RELAY DRIVER' };
