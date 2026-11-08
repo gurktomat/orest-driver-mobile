@@ -355,6 +355,7 @@ workflows:
         - signing
       vars:
         PACKAGE_NAME: "com.orestexpress.driver"
+        PLAY_TRACK: "alpha"  # the testing track the listing attaches to
     scripts:
       - name: Upload the Google Play listing (text, icon, feature graphic, screenshots)
         script: fastlane android store_metadata

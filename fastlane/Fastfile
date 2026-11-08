@@ -3,7 +3,8 @@
 # "store listing (App Store)" / "store listing (Google Play)", or locally with the same env vars.
 #   App Store: APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_PRIVATE_KEY,
 #              BUNDLE_ID, STORE_VERSION (the version to edit; created if missing)
-#   Google Play: GCLOUD_SERVICE_ACCOUNT_CREDENTIALS, PACKAGE_NAME
+#   Google Play: GCLOUD_SERVICE_ACCOUNT_CREDENTIALS, PACKAGE_NAME, PLAY_TRACK (testing track holding a release)
+#   optional REVIEW_NOTES: creates the App Review record of a never-submitted app
 # Text: metadata/en-US (App Store), metadata/android/en-US (Play). Screenshots: screenshots/en-US
 # (1290x2796 iPhone, 2048x2732 iPad), metadata/android/en-US/images (icon, feature graphic, phone and
 # 7"/10" tablet). Regenerate the screenshots with play-store-assets/ (see its README).
@@ -31,6 +32,10 @@ platform :ios do
       submit_for_review: false,
       automatic_release: false,
       run_precheck_before_submit: false,
+      # An app that was never submitted has no App Review record, and deliver 2.23x crashes reading it
+      # ("No data" in fetch_app_store_review_detail). REVIEW_NOTES (Dock's workflow only) creates it first;
+      # left unset, an existing record (TMS, Driver: demo sign-in notes) is not touched.
+      app_review_information: (ENV["REVIEW_NOTES"].to_s.empty? ? nil : { notes: ENV["REVIEW_NOTES"] }),
       force: true # no HTML preview to confirm on a CI machine
     )
   end
@@ -39,9 +44,17 @@ end
 platform :android do
   desc "Upload the Google Play listing: text, icon, feature graphic, phone and tablet screenshots (no APK/AAB)"
   lane :store_metadata do
+    key = ENV.fetch("GCLOUD_SERVICE_ACCOUNT_CREDENTIALS")
+    track = ENV.fetch("PLAY_TRACK")
+    # supply attaches the listing to a release even when it uploads no AAB: without a version code it
+    # fails ("Could not find release for version code ''"). Use the newest one on the testing track.
+    codes = google_play_track_version_codes(package_name: ENV.fetch("PACKAGE_NAME"), json_key_data: key, track: track)
+    UI.user_error!("No release on the Play #{track} track to attach the listing to") if codes.empty?
     supply(
       package_name: ENV.fetch("PACKAGE_NAME"),
-      json_key_data: ENV.fetch("GCLOUD_SERVICE_ACCOUNT_CREDENTIALS"),
+      json_key_data: key,
+      track: track,
+      version_code: codes.max,
       metadata_path: "./fastlane/metadata/android",
       skip_upload_apk: true,
       skip_upload_aab: true,
