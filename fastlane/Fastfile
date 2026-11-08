@@ -1,0 +1,52 @@
+# Store listings (text + images) for this app, uploaded from Codemagic with the keys it already holds.
+# No binary is uploaded and nothing is submitted for review. Run the manual Codemagic workflows
+# "store listing (App Store)" / "store listing (Google Play)", or locally with the same env vars.
+#   App Store: APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_PRIVATE_KEY,
+#              BUNDLE_ID, STORE_VERSION (the version to edit; created if missing)
+#   Google Play: GCLOUD_SERVICE_ACCOUNT_CREDENTIALS, PACKAGE_NAME
+# Text: metadata/en-US (App Store), metadata/android/en-US (Play). Screenshots: screenshots/en-US
+# (1290x2796 iPhone, 2048x2732 iPad), metadata/android/en-US/images (icon, feature graphic, phone and
+# 7"/10" tablet). Regenerate the screenshots with play-store-assets/ (see its README).
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Upload the App Store listing text and screenshots for STORE_VERSION (no binary, no submission)"
+  lane :store_metadata do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_KEY_IDENTIFIER"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+      key_content: ENV.fetch("APP_STORE_CONNECT_PRIVATE_KEY"),
+      in_house: false
+    )
+    deliver(
+      api_key: api_key,
+      app_identifier: ENV.fetch("BUNDLE_ID"),
+      app_version: ENV.fetch("STORE_VERSION"),
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots",
+      ignore_language_directory_validation: true, # metadata/android holds the Play listing
+      skip_binary_upload: true,
+      overwrite_screenshots: true,
+      submit_for_review: false,
+      automatic_release: false,
+      run_precheck_before_submit: false,
+      force: true # no HTML preview to confirm on a CI machine
+    )
+  end
+end
+
+platform :android do
+  desc "Upload the Google Play listing: text, icon, feature graphic, phone and tablet screenshots (no APK/AAB)"
+  lane :store_metadata do
+    supply(
+      package_name: ENV.fetch("PACKAGE_NAME"),
+      json_key_data: ENV.fetch("GCLOUD_SERVICE_ACCOUNT_CREDENTIALS"),
+      metadata_path: "./fastlane/metadata/android",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      sync_image_upload: true
+    )
+  end
+end

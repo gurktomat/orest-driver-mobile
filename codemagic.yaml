@@ -328,3 +328,33 @@ workflows:
         credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
         track: alpha
         in_app_update_priority: 0
+
+  # Store listings (2026-11): MANUAL ONLY, no `triggering:` on purpose. Uploads fastlane/metadata and
+  # fastlane/screenshots with the keys of the `signing` group; no binary, never submits for review.
+  store-listing-ios:
+    name: Orest Driver - store listing (App Store)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      groups:
+        - signing
+      vars:
+        BUNDLE_ID: "com.orestexpress.driver"
+        STORE_VERSION: "1.6"
+      xcode: "26.4"
+    scripts:
+      - name: Upload the App Store listing (text + screenshots)
+        script: fastlane ios store_metadata
+
+  store-listing-android:
+    name: Orest Driver - store listing (Google Play)
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      groups:
+        - signing
+      vars:
+        PACKAGE_NAME: "com.orestexpress.driver"
+    scripts:
+      - name: Upload the Google Play listing (text, icon, feature graphic, screenshots)
+        script: fastlane android store_metadata

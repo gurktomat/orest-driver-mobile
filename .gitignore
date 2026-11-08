@@ -37,3 +37,4 @@ play-store-assets/shots/
 # Orphaned May-2026 Vite build output — web/index.html is self-contained and
 # never references these; the shell loads the site remotely (server.url).
 web/assets/
+play-store-assets/raw/
