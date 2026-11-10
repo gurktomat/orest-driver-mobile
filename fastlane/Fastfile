@@ -30,7 +30,10 @@ platform :ios do
       skip_binary_upload: true,
       overwrite_screenshots: true,
       submit_for_review: false,
-      automatic_release: false,
+      # No `automatic_release`: deliver turns `false` into a MANUAL release type on the version it
+      # edits (and creates), so an approved build then waits for someone to press Release. On
+      # 2026-11-08 this lane held Driver 1.6 and TMS 1.5 that way, both approved, neither on sale.
+      # Unset, deliver leaves the release type as it is: this lane uploads text and images only.
       run_precheck_before_submit: false,
       # An app that was never submitted has no App Review record, and deliver 2.23x crashes reading it
       # ("No data" in fetch_app_store_review_detail). REVIEW_NOTES (Dock's workflow only) creates it first;
