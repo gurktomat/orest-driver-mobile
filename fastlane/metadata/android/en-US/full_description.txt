@@ -19,4 +19,4 @@ ALSO IN THE APP
 - Face ID or fingerprint sign-in
 - Your loads stay visible without coverage
 
-Route Relay Driver is for Orest Express drivers. Your dispatch office sets up your account; there is no self-signup.
+Route Relay Driver is for the drivers of carriers that dispatch on Route Relay. Your dispatch office sets up your account; there is no self-signup.
