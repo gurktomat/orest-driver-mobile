@@ -50,7 +50,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
-		<string>fetch</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Used to capture BOLs, PODs, DVIRs, and other shipment documents.</string>

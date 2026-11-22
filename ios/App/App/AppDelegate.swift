@@ -5,7 +5,7 @@ import FirebaseCore
 import FirebaseMessaging
 import UserNotifications
 
-@UIApplicationMain
+@main
 class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
 
     var window: UIWindow?
@@ -42,12 +42,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         return true
     }
 
-    func applicationWillResignActive(_ application: UIApplication) {}
-    func applicationDidEnterBackground(_ application: UIApplication) {}
-    func applicationWillEnterForeground(_ application: UIApplication) {}
-    func applicationDidBecomeActive(_ application: UIApplication) {}
-    func applicationWillTerminate(_ application: UIApplication) {}
-
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
     }
@@ -77,6 +71,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
         // 89 Android driver /fcm/subscribe calls, 1 from iOS). Same fix as
         // orest-express-mobile a2462d1. Once the APNs token is set,
         // token(completion:) answers from the cache.
+        // `token(completion:)` is deprecated since Firebase 12.19 in favour of `register(completion:)`,
+        // which hands back a Firebase Installation ID instead of an FCM token. The server sends to FCM
+        // tokens (api fcm_service), so that is a migration of both sides, not a rename: the warning
+        // stays until it is done (noted 2026-11-22).
         Messaging.messaging().token { token, _ in
             guard let token = token, let tokenData = token.data(using: .utf8) else { return }
             DispatchQueue.main.async {
