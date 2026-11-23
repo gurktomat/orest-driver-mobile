@@ -381,5 +381,11 @@ workflows:
             google-play tracks list --package-name "$pkg" --json > "out/$pkg.json" 2> "out/$pkg.err" || echo "tracks list failed for $pkg"
           done
           wc -c out/*
+      - name: Would Play accept a production release? (validate only, nothing is published)
+        script: |
+          for pkg in com.orestexpress.driver com.route_relay_tms com.orestexpress.floor; do
+            PACKAGE_NAME="$pkg" fastlane android production_check > "out/production-check-$pkg.txt" 2>&1 \
+              && echo "$pkg: Play would accept it" || echo "$pkg: Play refused, see out/production-check-$pkg.txt"
+          done
     artifacts:
       - out/*

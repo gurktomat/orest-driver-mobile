@@ -66,3 +66,26 @@ platform :android do
     )
   end
 end
+
+# Read-only check, used by the manual Codemagic workflow "play-status" on the tools/play-status
+# branch: would Google Play accept promoting the newest closed-testing release to PRODUCTION?
+# `validate_only` asks Play to validate the edit and then throws it away: nothing is published.
+platform :android do
+  desc "Ask Google Play whether the closed-testing release could go to production (nothing is changed)"
+  lane :production_check do
+    supply(
+      package_name: ENV.fetch("PACKAGE_NAME"),
+      json_key_data: ENV.fetch("GCLOUD_SERVICE_ACCOUNT_CREDENTIALS"),
+      track: "alpha",
+      track_promote_to: "production",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      validate_only: true
+    )
+  end
+end
+
