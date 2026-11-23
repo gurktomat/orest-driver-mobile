@@ -78,6 +78,9 @@ for (const [size, v] of Object.entries(SIZES)) {
   for (const pg of PAGES) {
     await page.goto(`${BASE}${pg.url}`, { waitUntil: 'networkidle', timeout: 60000 }).catch(() => {});
     await page.waitForTimeout(3500);
+    // The "Install the Android app / Download App" card is what a BROWSER on Android shows; the
+    // installed app never draws it, and a store screenshot must not offer a download outside the store.
+    await page.evaluate(() => document.querySelector('[data-testid="driver-android-app-card"]')?.remove());
     await page.screenshot({ path: `raw/${size}/${pg.slug}.png` });
   }
   console.log(`driver ${size} done`);
