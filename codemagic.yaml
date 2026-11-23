@@ -365,7 +365,7 @@ workflows:
   # The credentials stay in Codemagic; only the track listings come back as artifacts.
   play-status:
     name: Route Relay - Google Play status (read only)
-    instance_type: linux_x2
+    instance_type: mac_mini_m2
     max_build_duration: 15
     environment:
       groups:
