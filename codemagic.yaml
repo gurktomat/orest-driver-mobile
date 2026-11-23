@@ -359,3 +359,27 @@ workflows:
     scripts:
       - name: Upload the Google Play listing (text, icon, feature graphic, screenshots)
         script: fastlane android store_metadata
+
+  # Read-only: what is on each Google Play track for the three apps (version codes, release
+  # status, rollout). Manual; started through the Codemagic API from the tools/play-status branch.
+  # The credentials stay in Codemagic; only the track listings come back as artifacts.
+  play-status:
+    name: Route Relay - Google Play status (read only)
+    instance_type: linux_x2
+    max_build_duration: 15
+    environment:
+      groups:
+        - signing
+    scripts:
+      - name: Read every track of the three apps
+        script: |
+          mkdir -p out
+          command -v google-play >/dev/null || pip3 install -q codemagic-cli-tools
+          google-play --help > out/help.txt 2>&1 || true
+          google-play tracks --help > out/help-tracks.txt 2>&1 || true
+          for pkg in com.orestexpress.driver com.route_relay_tms com.orestexpress.floor; do
+            google-play tracks list --package-name "$pkg" --json > "out/$pkg.json" 2> "out/$pkg.err" || echo "tracks list failed for $pkg"
+          done
+          wc -c out/*
+    artifacts:
+      - out/*
