@@ -298,28 +298,10 @@ workflows:
         # "0 permission groups" is a red herring: these permissions are granted
         # per user, and no permission GROUPS are defined on the account at all.
         #
-        # ⚠ What actually blocks this workflow is the credential, not the grant.
-        # Builds #19/#20/#21 were rejected pre-flight with "Provided Google Play
-        # service account JSON has invalid format" - no steps run, no APK is
-        # produced.
-        #
-        # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS IS present in the `signing` group
-        # and marked Secret (verified 2026-08-22), so the stored VALUE is
-        # malformed rather than absent. It cannot be inspected - Codemagic masks
-        # secrets - and a secure value cannot be edited in place either: delete
-        # the row and re-add it with the same name, group and Secret flag.
-        #
-        # ⚠ Paste the key file RAW. Do not base64-encode it. The hint on that
-        # settings page ("binaries need to be base64-encoded") applies to the
-        # keystore and .plist entries, NOT to this one - google_play wants plain
-        # JSON, and a base64 blob fails with exactly this "invalid format" error.
-        # No surrounding quotes; include the outer braces; keep the \n escapes
-        # inside "private_key" exactly as the downloaded file has them.
-        #
-        # Key source: GCP Console -> IAM & Admin -> Service Accounts -> project
-        # orest-driver-publishing -> that SA -> Keys -> Add key -> Create new key
-        # -> JSON. orest-express-mobile reads the same variable name from
-        # `signing-tms` and publishes fine, so that is the working reference.
+        # The credential in the `signing` group works: this workflow has published every build
+        # since 1.2 (August 2026), the latest 1.7 (version code 32) on 2026-11-23. To see what a
+        # track really holds, run the manual `play-status` workflow on the tools/play-status
+        # branch; a green step alone is not proof (the Dock's was green for months with no upload).
         # Track values: internal | alpha (closed) | beta (open) | production.
         # ⚠ Must be `alpha`, NOT `internal`: Play's production-access gate for
         # personal accounts requires a CLOSED test (>=12 testers opted in for 14
